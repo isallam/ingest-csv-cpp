@@ -22,33 +22,55 @@
 #include <objy/data/Data.h>
 #include "TargetKey.h"
 
+using namespace std;
+
 class SingleKey : public TargetKey {
 public:
   SingleKey();
   SingleKey(const SingleKey& orig);
   virtual ~SingleKey();
-  SingleKey(std::string attrName, std::string rawFileAttrName,
+
+  SingleKey(string attrName, string rawFileAttrName,
           objy::data::LogicalType logicalType) {
     attrName = attrName;
     rawFileAttrName = rawFileAttrName;
     logicalType = logicalType;
   }
-  std::string toString() {
-    std::string retString;
-    
+
+  string toString() {
+    string retString;
+
     retString = "attrName: " + attrName + ", rawFileName: " + rawFileAttrName +
-            ", logicalType: " + logicalType.toString();
+            ", logicalType: " + objy::data::LogicalType::toString(logicalType);
+
     return retString;
   }
 
-  Object getCorrectValue(CSVRecord record);
+  string getCorrectValue(CSVRecord record) {
+    //    if (logicalType == LogicalType.INTEGER) {
+    //      long attrValue = 0;
+    //      string attrValueStr = record.get(rawFileAttrName);
+    //      if (!attrValueStr.equals(""))
+    //        attrValue = Long.parseLong(attrValueStr);
+    //      return attrValueStr;
+    //    }
+    //    if (logicalType == LogicalType.REAL) {
+    //      double attrValue = 0;
+    //      String attrValueStr = record.get(rawFileAttrName);
+    //      if (!attrValueStr.equals(""))
+    //        attrValue = Double.parseDouble(attrValueStr);
+    //      return attrValue;
+    //    }
+    //    else 
+    return record.get(rawFileAttrName);
+  }
 
 
 private:
-    std::string attrName;
-    std::string rawFileAttrName;
-    objy::data::LogicalType logicalType;
-    
+  string attrName;
+  string rawFileAttrName;
+  objy::data::LogicalType::type logicalType;
+
 };
 
 #endif /* SINGLEKEY_H */

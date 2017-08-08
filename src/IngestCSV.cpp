@@ -11,12 +11,17 @@
  * Created on July 26, 2017, 5:34 PM
  */
 
+#include <iostream>
 #include "IngestCSV.h"
-#include "src/utils/rapidjson/document.h"
-#include "src/utils/rapidjson/filereadstream.h"
-#include "src/utils/rapidjson/stringbuffer.h"
-#include "src/utils/fast-cpp-csv-parser/csv.h"
+#include "utils/rapidjson/document.h"
+#include "utils/rapidjson/filereadstream.h"
+#include "utils/rapidjson/stringbuffer.h"
+#include "utils/csv/CSVParser.h"
+#include "utils/csv/CSVFormat.h"
+#include "utils/csv/CSVRecord.h"
 #include "utils/Relationship.h"
+
+using namespace std;
 
 IngestCSV::IngestCSV() {
 }
@@ -39,7 +44,7 @@ IngestCSV::~IngestCSV() {
       fclose(fp);
     }
     else {
-      std::cerr << "Error opening file: " << csvFile << std::endl;
+      std::cerr << "Error opening file: " << mapperFile << std::endl;
     }
     
     try {
@@ -94,18 +99,21 @@ int IngestCSV::processFile(std::string& fileName, IngestMapper& mapper) {
 
     ClassAccessor classProxy = SchemaManager.getInstance().getClassProxy(mapper.getClassName());
     classProxy.setMapper(mapper);
-    Iterable<CSVRecord> records = null;
+    vector<csv::CSVRecord> records;
+    
     int objCount = 0;
     try {
-      Reader in;
       // pass 1: process the keys and related types from the file and cache oids.
-      in = new FileReader(fileName);
       // parse the file and pick the keys needed.
-      records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+      csv::CSVFormat* csvFormat = csv::CSVFormat::create(csv::FormatType::RFC4180);
+      csvFormat->withFirstRecordAsHeader();
+      csv::CSVParser csvParser(fileName, csvFormat);
+
+      records = csvParser.getRecords();
       bool doProcessForRelationships = mapper.hasRelationships();
       bool doProcessClassKeys = mapper.hasClassKey();
       if (doProcessClassKeys || doProcessForRelationships) {
-        for (CSVRecord record : records) {
+        for (CSVRecord& record : records) {
           if (doProcessForRelationships) {
             for (Relationship rel : mapper.getRelationshipList()) {
               rel.getTargetList().collectTargetInfo(record);
@@ -133,20 +141,17 @@ int IngestCSV::processFile(std::string& fileName, IngestMapper& mapper) {
                   << mapper.getClassName() << " objects" << std::endl;
         }
       }
-      in.close();
+      csvParser.rewind()
 
       // pass 2:
       std::cout << "Phase 2: update newly created objects and connect related objects." << std::endl;
-      in = new FileReader(fileName);
-      records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
-      for (CSVRecord record : records) {
+      records = csvParser.getRecords();
+      for (csv::CSVRecord& record : records) {
         classProxy.createObject(record);
         objCount++;
       }
-    } catch (FileNotFoundException ex) {
-      LOG.error(ex.getMessage());
-    } catch (IOException ex) {
-      LOG.error(ex.getMessage());
+    } catch (...) {
+      cerr << "Error processing CSVFile (1)." << endl;
     }
     return objCount;
   }

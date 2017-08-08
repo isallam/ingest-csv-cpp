@@ -22,9 +22,9 @@
 #include <objy/db/Connection.h>
 #include <objy/db/Transaction.h>
 #include <objy/db/TransactionScope.h>
-#include <objy/data/Data.h>
+//#include <objy/data/Data.h>
 #include <objy/data/List.h>
-#include "src/IngestCSV.h"
+#include "IngestCSV.h"
 #include "src/utils/option.h"
 
 namespace objydb = objy::db;
@@ -33,13 +33,15 @@ namespace objyconfig = objy::configuration;
 
 using namespace std;
 
-class _Params {
+namespace config {
   static const char* CommitEvery   = "CommitEvery";
   static const char* BootFilePath   = "BootFilePath";
   static const char* CSVFilePath    = "CSVFilePath";
   static const char* CSVFilesPath   = "CSVFilesPath";
   static const char* MapperFilePath = "MapperFilePath";
 
+
+class _Params {
   optparse::OptionParser optionParser;
   
 public:
@@ -85,17 +87,17 @@ public:
     
     optparse::Values &values = optionParser.parse_args(argc, argv);
     
-    bootFile = values.get(BootFilePath);
-    mapperFile = values.get(MapperFilePath);
+    bootFile = (const char*) values.get(BootFilePath);
+    mapperFile = (const char*) values.get(MapperFilePath);
     commitEvery = values.get(CommitEvery).asInt32();
     
     if (values.get(CSVFilePath))
     {
-      csvFile = values.get(CSVFilePath);
+      csvFile = (const char*)values.get(CSVFilePath);
     }
     else if (values.get(CSVFilesPath))
     {
-      csvFiles = values.get(CSVFilesPath);
+      csvFiles = (const char*) values.get(CSVFilesPath);
       multipleFiles = true;
     }
   }
@@ -106,6 +108,7 @@ public:
   int commitEvery = 20000;
   bool multipleFiles = false;
 };
+}
 
 /*
  * 
@@ -115,7 +118,7 @@ int main(int argc, char** argv) {
   std::string fdname;
   objydb::Connection* connection;
   objydb::Transaction* trx;
-  _Params _params(argc, argv);
+  config::_Params _params(argc, argv);
 
   // TBD... boot file is hard coded for now, will be params later
   //processParams(args);
@@ -133,7 +136,7 @@ int main(int argc, char** argv) {
     trx = new objydb::Transaction(objydb::OpenMode::Update, "write_session");
     IngestCSV ingester;
 
-    if (!_params.mapperFile) {
+    if (!_params.multipleFiles) {
       ingester.ingest(_params.csvFile, _params.mapperFile, _params.commitEvery);
     } else {
       std::cout << "Processing files: " << _params.csvFiles << std::endl;

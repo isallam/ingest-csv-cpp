@@ -18,10 +18,10 @@
 class Property {
 private:
   std::string attrName;
-  Object attrValue;
+  std::string attrValue;
 
 public:
-  Property(std::string name, Object value) {
+  Property(std::string name, std::string value) {
     attrName = name;
     attrValue = value;
   }
@@ -30,7 +30,7 @@ public:
     return attrName;
   }
   
-  Object getValue() {
+  std::string getValue() {
     return attrValue;
   }
   

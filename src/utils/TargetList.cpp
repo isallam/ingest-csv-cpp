@@ -12,6 +12,8 @@
  */
 
 #include "TargetList.h"
+#include <objy/target_finder/TargetFinder.h>
+ 
 
 TargetList::TargetList() {
 }
@@ -40,12 +42,12 @@ void TargetList::collectTargetInfo(CSVRecord record) {
 }
 
 void TargetList::addToTargetInfoMap(CSVRecord record,
-        SingleKey... singleKeywords) {
-  Property[] nameValues = new Property[singleKeywords.length];
-  for (int i = 0; i < singleKeywords.length; i++) {
-    nameValues[i] = new Property(
+        vector<SingleKey> singleKeywords) {
+  vector<Property> nameValues;
+  for (int i = 0; i < singleKeywords.size(); i++) {
+    nameValues.push_back(Property(
             singleKeywords[i].attrName,
-            singleKeywords[i].getCorrectValue(record));
+            singleKeywords[i].getCorrectValue(record)));
   }
   addToTargetInfoMap(nameValues);
 }
@@ -58,7 +60,7 @@ void TargetList::addToTargetInfoMap(Property... nameValues) {
 }
 
 
-public
+public:
 
 Instance getTargetObject(CSVRecord record, TargetKey key) {
   Instance instance = null;
@@ -80,12 +82,12 @@ Instance getTargetObject(CSVRecord record, TargetKey key) {
 Instance TargetList::getTargetObjectForKyes(CSVRecord record,
         SingleKey... keys) {
   //    Object[] values = new Property[keys.length];
-  List<Object> values = new ArrayList<>();
+  vector<string> values;
   for (SingleKey key : keys) {
     //values[i] = record.get(key.rawFileAttrName);
-    values.add(key.getCorrectValue(record));
+    values.push_back(key.getCorrectValue(record));
   }
-  return getTargetObject(values.toArray());
+  return getTargetObject(values);
 }
 
 long TargetList::hashOfValues(Property... nameValues) {
@@ -104,9 +106,9 @@ long TargetList::hash(Object... values) {
   return value.hashCode();
 }
 
-objy::data::Object& TargetList::getTargetObject(Object... values) {
+objy::data::Object& TargetList::getTargetObject(vector<string> values) {
   long hashValue = hash(values);
-  Instance instance = null;
+  objy::data::Object instance;
 
   TargetInfo targetInfo = targetInfoMap.get(hashValue);
   if (targetInfo != null)
@@ -119,13 +121,14 @@ objy::data::Object& TargetList::getTargetObject(Object... values) {
 }
 
 void TargetList::fetchTargets() {
-  TargetFinder targetFinder = new TargetFinder();
+  objy::target_finder::TargetFinder targetFinder;
 
-  ObjectTargetKeyBuilder targetKeyBuilder;
-  ObjectTargetKey targetKey;
-  com.objy.data.Class objyClass = targetClass.getObjyClass();
-  for (TargetInfo targetInfo : targetInfoMap.values()) {
-    targetKeyBuilder = new ObjectTargetKeyBuilder(objyClass);
+  objy::target_finder::ObjectTargetKeyHandle targetKey;
+  objy::data::Class& objyClass = targetClass.getObjyClass();
+  objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
+  
+  for (TargetInfo targetInfo : targetInfoMap) {
+     targetKeyBuilder = new ObjectTargetKeyBuilder(objyClass);
     for (Property keyValuePair : targetInfo.nameValues) {
       //        System.out.println("Add to targetKeyBuilder: " + keyValuePair.attrName +
       //                ", val: " + keyValuePair.attrValue);

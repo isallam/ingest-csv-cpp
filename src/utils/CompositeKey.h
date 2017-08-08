@@ -37,7 +37,7 @@ public:
     std::string strBuffer;
     for (SingleKey key : keys)
     {
-      strBuffer += key.toString() + std::endl;
+      strBuffer += key.toString() + " \n ";
     }
     return strBuffer;
   }

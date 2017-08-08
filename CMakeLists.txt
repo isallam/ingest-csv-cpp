@@ -22,7 +22,7 @@ ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS=1)
 
 SET(OBJY_VERSION 12.4)
 
-include_directories(. /opt/Objectivity/${OBJY_VERSION}/include)
+include_directories(. ./src /opt/Objectivity/${OBJY_VERSION}/include)
  
 SET(SOURCES main.cpp)
 

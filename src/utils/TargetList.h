@@ -14,6 +14,16 @@
 #ifndef TARGETLIST_H
 #define TARGETLIST_H
 
+#include <vector>
+#include <objy/target_finder/TargetFinder.h>
+#include <objy/target_finder/ObjectTarget.h>
+#include "Property.h"
+#include "SingleKey.h"
+#include "CompositeKey.h"
+
+
+using namespace std;
+
 class TargetList {
 public:
   TargetList();
@@ -40,10 +50,10 @@ private:
    */
   class TargetInfo {
     std::vector<Property> nameValues;
-    ObjectTarget targetObject;
+    objy::target_finder::ObjectTargetHandle targetObject;
 
-    protected TargetInfo(Property... nameValues) {
-      this.nameValues = nameValues;
+    TargetInfo(vector<Property> nameValues) {
+      nameValues = nameValues;
     }
   };
   
@@ -51,19 +61,20 @@ private:
   //---------------------
   // local attributes...
   //---------------------
-  private HashMap<Long, TargetInfo> targetInfoMap = new HashMap<>();
+  std::map<int64, TargetInfo> targetInfoMap;
   ClassAccessor* targetClass;
   std::vector<TargetKey> targetKeys;
   
   void addToTargetInfoMap(CSVRecord record, 
-                        SingleKey... singleKeywords);
-  void addToTargetInfoMap(Property... nameValues);
+                        vector<SingleKey> singleKeywords);
+  void addToTargetInfoMap(vector<Property> nameValues);
   objy::data::Object getTargetObjectForKyes(CSVRecord record, 
-                        SingleKey... keys);
-  objy::data::Object getTargetObject(Object... values);
+                        vector<SingleKey> keys);
+  objy::data::Object getTargetObject(vector<string> values);
 
-  static long hashOfValues(Property...  nameValues);
-  static long hash(Object...  values);
+  static long hashOfValues(Property nameValue);
+  static long hashOfValues(vector<Property>  nameValues);
+  static long hash(vector<string>  values);
   
 };
 

@@ -25,7 +25,7 @@ public:
   void ingest(std::string& csvFile, std::string& mapperFile, int commitEvery);
 private:
   void checkpoint(objy::db::Transaction tx);
-  int processFile(std::string& fileName, IngestMapper& mapper);
+  int processFile(std::string& fileName, csv::ingester::IngestMapper& mapper);
 };
 
 #endif /* INGESTCSV_H */

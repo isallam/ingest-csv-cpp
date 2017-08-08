@@ -16,6 +16,9 @@
 
 #include <string>
 #include <map>
+#include <vector>
+
+using namespace std;
 
 #include <ooObjy.h>
 #include <objy/data/Data.h>
@@ -23,11 +26,14 @@
 #include <objy/data/Class.h>
 
 #include "IngestMapper.h"
-#include "utils/Property.h"
-#include "utils/Relationship.h"
+#include "Property.h"
+#include "Relationship.h"
+#include "csv/CSVRecord.h"
 
-typedef std::map<std::string, objy::data::Attribute> AttributeMap;
-typedef std::map<std::string, objy::data::Attribute>::iterator AttributeMapItr;
+typedef map<std::string, objy::data::Attribute> AttributeMap;
+typedef map<std::string, objy::data::Attribute>::iterator AttributeMapItr;
+
+class IngestMapper;
 
 class ClassAccessor {
 public:
@@ -36,13 +42,13 @@ public:
   virtual ~ClassAccessor();
   
   void init();
-  objy::data::Attribute getAttribute(std::string attrName);
+  objy::data::Attribute getAttribute(string attrName);
   
-  void setMapper(IngestMapper& mapperRef) {
-    mapper = mapperRef;
+  void setMapper(IngestMapper* ingestMapper) {
+    mapper = ingestMapper;
   }
 
-  std::string getClassName();
+  string getClassName();
   
   objy::data::Class getObjyClass() {
     return classRef;
@@ -54,14 +60,14 @@ public:
   }
   
   objy::data::Object createObject(CSVRecord record);
-  objy::data::Object createObject(Property... properties);
+  objy::data::Object createObject(vector<Property> properties);
   objy::data::Object setAttributes(objy::data::Object instance, CSVRecord record);
   void setAttributeValue(objy::data::Object instance, 
-          std::string attributeName, objy::data::Object value);
+          string attributeName, objy::data::Object value);
   void setReference(objy::data::Object instance, 
-          std::string attributeName, objy::data::Object value);
+          string attributeName, objy::data::Object value);
   void addReference(objy::data::Object instance, 
-          std::string attributeName, objy::data::Object value);
+          string attributeName, objy::data::Object value);
 
 private:
   void setAttributeValue(objy::data::Object& instance, 
@@ -75,9 +81,9 @@ private:
 private:
 
   objy::data::Class classRef;
-  std::string className;
+  string className;
   AttributeMap attributeMap;
-  IngestMapper mapper;
+  IngestMapper* mapper;
 
 };
 
