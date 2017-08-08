@@ -15,16 +15,16 @@
 #include <objy/target_finder/TargetFinder.h>
  
 
-TargetList::TargetList() {
+csv::TargetList::TargetList() {
 }
 
-TargetList::TargetList(const TargetList& orig) {
+csv::TargetList::TargetList(const TargetList& orig) {
 }
 
-TargetList::~TargetList() {
+csv::TargetList::~TargetList() {
 }
 
-void TargetList::collectTargetInfo(CSVRecord record) {
+void csv::TargetList::collectTargetInfo(CSVRecord record) {
   for (TargetKey key : targetKeys) {
     //System.out.println(" >> in collectTargetInfo() - key:" + key);
     try {
@@ -41,7 +41,7 @@ void TargetList::collectTargetInfo(CSVRecord record) {
   }
 }
 
-void TargetList::addToTargetInfoMap(CSVRecord record,
+void csv::TargetList::addToTargetInfoMap(CSVRecord record,
         vector<SingleKey> singleKeywords) {
   vector<Property> nameValues;
   for (int i = 0; i < singleKeywords.size(); i++) {
@@ -52,7 +52,7 @@ void TargetList::addToTargetInfoMap(CSVRecord record,
   addToTargetInfoMap(nameValues);
 }
 
-void TargetList::addToTargetInfoMap(Property... nameValues) {
+void csv::TargetList::addToTargetInfoMap(Property... nameValues) {
 
   TargetInfo idInfo = new TargetList.TargetInfo(nameValues);
   long hashValue = hashOfValues(nameValues);
@@ -60,9 +60,7 @@ void TargetList::addToTargetInfoMap(Property... nameValues) {
 }
 
 
-public:
-
-Instance getTargetObject(CSVRecord record, TargetKey key) {
+Instance csv::TargetList::getTargetObject(CSVRecord record, TargetKey key) {
   Instance instance = null;
   try {
     if (key instanceof SingleKey) {
@@ -79,7 +77,7 @@ Instance getTargetObject(CSVRecord record, TargetKey key) {
   return instance;
 }
 
-Instance TargetList::getTargetObjectForKyes(CSVRecord record,
+Instance csv::TargetList::getTargetObjectForKyes(CSVRecord record,
         SingleKey... keys) {
   //    Object[] values = new Property[keys.length];
   vector<string> values;
@@ -90,7 +88,7 @@ Instance TargetList::getTargetObjectForKyes(CSVRecord record,
   return getTargetObject(values);
 }
 
-long TargetList::hashOfValues(Property... nameValues) {
+long csv::TargetList::hashOfValues(Property... nameValues) {
   String value = "";
   for (Property nameValue : nameValues) {
     value += nameValue.attrValue.toString();
@@ -98,7 +96,7 @@ long TargetList::hashOfValues(Property... nameValues) {
   return value.hashCode();
 }
 
-long TargetList::hash(Object... values) {
+long csv::TargetList::hash(Object... values) {
   String value = "";
   for (Object obj : values) {
     value += obj.toString();
@@ -106,7 +104,7 @@ long TargetList::hash(Object... values) {
   return value.hashCode();
 }
 
-objy::data::Object& TargetList::getTargetObject(vector<string> values) {
+objy::data::Object& csv::TargetList::getTargetObject(vector<string> values) {
   long hashValue = hash(values);
   objy::data::Object instance;
 
@@ -120,7 +118,7 @@ objy::data::Object& TargetList::getTargetObject(vector<string> values) {
   return instance;
 }
 
-void TargetList::fetchTargets() {
+void csv::TargetList::fetchTargets() {
   objy::target_finder::TargetFinder targetFinder;
 
   objy::target_finder::ObjectTargetKeyHandle targetKey;
@@ -140,7 +138,7 @@ void TargetList::fetchTargets() {
   targetFinder.resolveTargets();
 }
 
-int TargetList::createMissingTargets() {
+int csv::TargetList::createMissingTargets() {
   int count = 0;
   // iterate over the objectTargets and create data as needed.
   for (TargetInfo targetInfo : targetInfoMap.values()) {

@@ -25,67 +25,69 @@ using namespace std;
 #include <objy/data/List.h>
 #include <objy/data/Class.h>
 
-#include "IngestMapper.h"
 #include "Property.h"
 #include "Relationship.h"
 #include "csv/CSVRecord.h"
 
-typedef map<std::string, objy::data::Attribute> AttributeMap;
-typedef map<std::string, objy::data::Attribute>::iterator AttributeMapItr;
 
-class IngestMapper;
+namespace csv {
 
-class ClassAccessor {
-public:
-  ClassAccessor(std::string className);
-  ClassAccessor(const ClassAccessor& orig);
-  virtual ~ClassAccessor();
-  
-  void init();
-  objy::data::Attribute getAttribute(string attrName);
-  
-  void setMapper(IngestMapper* ingestMapper) {
-    mapper = ingestMapper;
-  }
+  typedef map<std::string, objy::data::Attribute> AttributeMap;
+  typedef map<std::string, objy::data::Attribute>::iterator AttributeMapItr;
 
-  string getClassName();
-  
-  objy::data::Class getObjyClass() {
-    return classRef;
-  }
+  class IngestMapper;
 
-  objy::data::Object createInstance() {
+  class ClassAccessor {
+  public:
+    ClassAccessor(std::string className);
+    ClassAccessor(const ClassAccessor& orig);
+    virtual ~ClassAccessor();
+
+    void init();
+    objy::data::Attribute getAttribute(string attrName);
+
+    void setMapper(csv::IngestMapper* ingestMapper) {
+      mapper = ingestMapper;
+    }
+
+    string getClassName();
+
+    objy::data::Class getObjyClass() {
+      return classRef;
+    }
+
+    objy::data::Object createInstance() {
       //objectCreatedCounter++;
       return objy::data::createPersistentObject(classRef);
-  }
-  
-  objy::data::Object createObject(CSVRecord record);
-  objy::data::Object createObject(vector<Property> properties);
-  objy::data::Object setAttributes(objy::data::Object instance, CSVRecord record);
-  void setAttributeValue(objy::data::Object instance, 
-          string attributeName, objy::data::Object value);
-  void setReference(objy::data::Object instance, 
-          string attributeName, objy::data::Object value);
-  void addReference(objy::data::Object instance, 
-          string attributeName, objy::data::Object value);
+    }
 
-private:
-  void setAttributeValue(objy::data::Object& instance, 
-          objy::data::Attribute& attribute, objy::data::Variable& value);
-  void setReference(objy::data::Object& instance, 
-          objy::data::Attribute& attribute, objy::data::Object& value);
-  bool doesListContainReference(objy::data::List& list, objy::data::Object& value);
-  void addReferenceIfDoesnotExist(objy::data::Map& map, objy::data::Reference& objRef);
+    objy::data::Object createObject(CSVRecord record);
+    objy::data::Object createObject(vector<Property> properties);
+    objy::data::Object setAttributes(objy::data::Object instance, CSVRecord record);
+    void setAttributeValue(objy::data::Object instance,
+            string attributeName, objy::data::Object value);
+    void setReference(objy::data::Object instance,
+            string attributeName, objy::data::Object value);
+    void addReference(objy::data::Object instance,
+            string attributeName, objy::data::Object value);
 
-  
-private:
+  private:
+    void setAttributeValue(objy::data::Object& instance,
+            objy::data::Attribute& attribute, objy::data::Variable& value);
+    void setReference(objy::data::Object& instance,
+            objy::data::Attribute& attribute, objy::data::Object& value);
+    bool doesListContainReference(objy::data::List& list, objy::data::Object& value);
+    void addReferenceIfDoesnotExist(objy::data::Map& map, objy::data::Reference& objRef);
 
-  objy::data::Class classRef;
-  string className;
-  AttributeMap attributeMap;
-  IngestMapper* mapper;
 
-};
+  private:
 
+    objy::data::Class classRef;
+    string className;
+    AttributeMap attributeMap;
+    IngestMapper* mapper;
+
+  };
+}
 #endif /* CLASSACCESSOR_H */
 

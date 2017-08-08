@@ -48,8 +48,8 @@ namespace csv {
 
     }
 
-    vector<CSVRecord> getRecords() {
-      vector<CSVRecord> records;
+    vector<csv::CSVRecord> getRecords() {
+      vector<csv::CSVRecord> records;
       CSVRecord rec;
       while (nextRecord(&rec)) {
         records.push_back(rec);
@@ -57,7 +57,7 @@ namespace csv {
       return records;
     }
 
-    bool nextRecord(CSVRecord * const result) {
+    bool nextRecord(csv::CSVRecord * const result) {
       bool retValue = false;
       _record.clear();
       string sb;
@@ -121,6 +121,10 @@ namespace csv {
       return _lexer->getCurrentLineNumber();
     }
 
+    bool rewind() {
+      return _lexer->rewind();
+    }
+    
   private:
     // TBD... need to refactor this for clarity
 

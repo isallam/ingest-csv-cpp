@@ -15,26 +15,29 @@
 #define PROPERTY_H
 #include <string>
 
-class Property {
-private:
-  std::string attrName;
-  std::string attrValue;
+namespace csv {
 
-public:
-  Property(std::string name, std::string value) {
-    attrName = name;
-    attrValue = value;
-  }
-  
-  std::string getName() {
-    return attrName;
-  }
-  
-  std::string getValue() {
-    return attrValue;
-  }
-  
-};
+  class Property {
+  private:
+    std::string attrName;
+    std::string attrValue;
 
+  public:
+
+    Property(std::string name, std::string value) {
+      attrName = name;
+      attrValue = value;
+    }
+
+    std::string getName() {
+      return attrName;
+    }
+
+    std::string getValue() {
+      return attrValue;
+    }
+
+  };
+}
 #endif /* PROPERTY_H */
 

@@ -14,19 +14,20 @@
 #ifndef INGESTCSV_H
 #define INGESTCSV_H
 #include <string>
-#include <objy/db/Transaction.h>
 #include "IngestMapper.h"
 
-class IngestCSV {
-public:
-  IngestCSV();
-  IngestCSV(const IngestCSV& orig);
-  virtual ~IngestCSV();
-  void ingest(std::string& csvFile, std::string& mapperFile, int commitEvery);
-private:
-  void checkpoint(objy::db::Transaction tx);
-  int processFile(std::string& fileName, csv::ingester::IngestMapper& mapper);
-};
+namespace csv {
 
+  class IngestCSV {
+  public:
+    IngestCSV();
+    IngestCSV(const IngestCSV& orig);
+    virtual ~IngestCSV();
+    void ingest(std::string csvFile, std::string mapperFile, int commitEvery);
+  private:
+    void checkpoint(objy::db::Transaction tx);
+    int processFile(std::string& fileName, csv::IngestMapper& mapper);
+  };
+}
 #endif /* INGESTCSV_H */
 

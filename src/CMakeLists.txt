@@ -5,7 +5,7 @@ include_directories(.)
 set(SOURCES 
 		${SOURCES}
 		${CMAKE_CURRENT_SOURCE_DIR}/IngestMapper.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/SchemaManager.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/IngestCSV.cpp
 		PARENT_SCOPE
 )
  

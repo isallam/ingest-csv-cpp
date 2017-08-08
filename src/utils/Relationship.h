@@ -16,100 +16,112 @@
 
 #include <string>
 #include <vector>
+#include "SchemaManager.h"
 #include "TargetKey.h"
-#include "ClassAccessor.h"
+#include "TargetList.h"
 
 using namespace std;
 
-class Relationship {
 
-  class RelationshipRef {
-  private:
-    TargetKey _key;
-    std::string _refAttrName;
-    std::string _revRefAttrName;
-    ClassAccessor* _revRefClassProxy;
+namespace csv {
+
+  class ClassAccessor;
+
+  class Relationship {
+
+    class RelationshipRef {
+    private:
+      csv::TargetKey _key;
+      string _refAttrName;
+      string _revRefAttrName;
+      string _revRefClassName;
+      ClassAccessor* _revRefClassProxy;
+
+    public:
+
+      RelationshipRef(TargetKey& key, std::string& refAttrName, 
+              std::string& revRefAttrName, string& revRefClassName) {
+        _key = key;
+        _refAttrName = refAttrName;
+        _revRefAttrName = revRefAttrName;
+        _revRefClassName = revRefClassName;
+        _revRefClassProxy = nullptr;
+      }
+
+      csv::TargetKey getKey() {
+        return _key;
+      }
+
+      std::string getRefAttrName() {
+        return _refAttrName;
+      }
+
+      std::string getRevRefAttrName() {
+        return _revRefAttrName;
+      }
+
+      csv::ClassAccessor* getRevRefClassProxy() {
+        if (_revRefClassProxy == nullptr)
+          _revRefClassProxy = csv::SchemaManager::getInstance()->getClassProxy(_revRefClassName);
+        return _revRefClassProxy;
+      }
+    };
 
   public:
 
-    RelationshipRef(TargetKey& key, std::string& refAttrName, std::string& revRefAttrName) {
-      _key = key;
-      _refAttrName = refAttrName;
-      _revRefAttrName = revRefAttrName;
-      _revRefClassProxy = NULL;
+    Relationship() : _targetList(nullptr), _isToOne(true) {
+    }
+    Relationship(const Relationship& orig) = delete;
+    virtual ~Relationship();
+
+    Relationship(std::string toClassName, bool isToMany = true) : Relationship() {
+      _toClassName = toClassName;
+      _isToOne = !isToMany;
     }
 
-    TargetKey getKey() {
-      return _key;
+//    Relationship(std::string toClassName, bool isToMany) {
+//      _toClassName = toClassName;
+//      _isToOne = !isToMany;
+//    }
+
+    std::string toClassName() {
+      return _toClassName;
     }
 
-    std::string getRefAttrName() {
-      return _refAttrName;
+    vector<RelationshipRef> getRelationshipRefList() {
+      return _relationshipRefList;
     }
 
-    std::string getRevRefAttrName() {
-      return _revRefAttrName;
+    void add(TargetKey key, string refAttrName, string revRefAttrName, string revRefClassName) {
+      RelationshipRef relationshipRef(key, refAttrName, revRefAttrName, revRefClassName);
+      _relationshipRefList.push_back(relationshipRef);
     }
 
-    ClassAccessor& getRevRefClassProxy() {
-      if (_revRefClassProxy == NULL)
-        _revRefClassProxy = SchemaManager.getInstance().getClassProxy(toClassName);
-      return _revRefClassProxy;
+    TargetList* getTargetList() {
+      if (_targetList == NULL) {
+        // initialize TargetList
+        _targetList = new TargetList(
+                csv::SchemaManager::getInstance()->getClassProxy(_toClassName),
+                getKeys());
+      }
+      return _targetList;
     }
+
+  private:
+    bool _isToOne;
+    TargetList* _targetList;
+    std::string _toClassName;
+    vector<RelationshipRef> _relationshipRefList;
+
+    vector<TargetKey> getKeys() {
+      std::vector<TargetKey> targetKeys;
+      for (auto& relRef : _relationshipRefList) {
+        targetKeys.push_back(relRef.getKey());
+      }
+      return targetKeys;
+    }
+
   };
-
-public:
-  Relationship();
-  Relationship(const Relationship& orig);
-  virtual ~Relationship();
-
-  Relationship(std::string toClassName) {
-    _toClassName = toClassName;
-  }
-
-  Relationship(std::string toClassName, bool isToMany) {
-    _toClassName = toClassName;
-    _isToOne = !isToMany;
-  }
-
-  std::string toClassName() {
-    return _toClassName;
-  }
-
-  vector<RelationshipRef> getRelationshipRefList() {
-    return _relationshipRefList;
-  }
-
-  void add(TargetKey key, string refAttrName, string revRefAttrName) {
-    RelationshipRef relationshipRef = new RelationshipRef(key, refAttrName, revRefAttrName);
-    _relationshipRefList.push_back(relationshipRef);
-  }
-
-  TargetList getTargetList() {
-    if (_targetList == NULL) {
-      // initialize TargetList
-      _targetList = new TargetList(
-              SchemaManager.getInstance().getClassProxy(toClassName),
-              getKeys());
-    }
-    return _targetList;
-  }
-
-private:
-  std::string& _toClassName;
-  bool _isToOne = true;
-  TargetList* _targetList;
-  vector<RelationshipRef> _relationshipRefList;
-
-  vector<TargetKey>& getKeys() {
-    std::vector<TargetKey> targetKeys;
-    for (auto& relRef : _relationshipRefList) {
-      targetKeys.push_back(relRef.getKey());
-    }
-    return targetKeys;
-  }
-
-};
-
+}
 #endif /* RELATIONSHIP_H */
 

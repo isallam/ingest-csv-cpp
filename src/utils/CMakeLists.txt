@@ -4,6 +4,7 @@ include_directories(.)
 #Can manually add the sources using the set command as follows:
 set(SOURCES 
 		${SOURCES}
+		${CMAKE_CURRENT_SOURCE_DIR}/SchemaManager.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/ClassAccessor.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/TargetList.cpp
 		PARENT_SCOPE

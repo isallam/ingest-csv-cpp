@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 
   try {
     trx = new objydb::Transaction(objydb::OpenMode::Update, "write_session");
-    IngestCSV ingester;
+    csv::IngestCSV ingester;
 
     if (!_params.multipleFiles) {
       ingester.ingest(_params.csvFile, _params.mapperFile, _params.commitEvery);

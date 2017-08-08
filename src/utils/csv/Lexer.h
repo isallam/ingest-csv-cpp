@@ -181,6 +181,12 @@ namespace csv {
         return _lastChar;
       }
 
+      bool rewind() {
+        _io.seekg(0);
+        _position = 0;
+        _lastChar = csv::constants::UNDEFINED;
+        return _io.good();
+      }
       /**
        * Returns the last character that was read as an integer (0 to 65535). This will be the last character returned by
        * any of the read methods. This will not include a character read using the {@link #lookAhead()} method. If no
@@ -319,6 +325,10 @@ namespace csv {
       _reader.setFile(fileName);
     }
 
+    virtual ~Lexer() {
+      close();
+    }
+    
     /**
      * Returns the next token.
      * <p>
@@ -423,6 +433,10 @@ namespace csv {
      */
     void close() /* throws IOException*/ {
       _reader.close();
+    }
+    
+    bool rewind() {
+      return _reader.rewind();
     }
 
     /**
