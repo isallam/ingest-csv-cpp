@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include "IngestCSV.h"
-#include <objy/db/Transaction.h>
+
 #include "utils/rapidjson/document.h"
 #include "utils/rapidjson/filereadstream.h"
 #include "utils/rapidjson/stringbuffer.h"
@@ -36,7 +36,7 @@ csv::IngestCSV::~IngestCSV() {
 void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int commitEvery) {
   rapidjson::Document jsonMapper;
   // read the mapper file as JSON and convert it to a Mapper object
-  FILE* fp = fopen(mapperFile, "rb");
+  FILE* fp = fopen(mapperFile.c_str(), "rb");
   if (fp != NULL) {
     char readBuffer[65536];
     rapidjson::FileReadStream is(fp, readBuffer, sizeof (readBuffer));
@@ -47,7 +47,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
   }
 
   try {
-    objy::db::Transaction tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
+    objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
     //      long timeStart = System.currentTimeMillis();
     // schemaManager need to be initialized within a transaction to cahce 
     // meta data information.
@@ -55,8 +55,9 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
 
     if (!fileName.empty() && !jsonMapper.Null()) {
       if (jsonMapper.IsArray()) {
-        for (unsigned i = 0; i < jsonMapper.Size(); i++) {
-          csv::IngestMapper mapper(jsonMapper[i]);
+        for (auto& element : jsonMapper.GetArray())
+        {
+          csv::IngestMapper mapper(element.GetObject());
           int objCount = processFile(fileName, mapper);
           // for now we read and process the whole file before commiting, but we
           // might change that to iterate and commit as needed.
@@ -65,7 +66,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
                   << "' Ingest... Total Objects: " << objCount << std::endl;
         }
       } else {
-        IngestMapper mapper(jsonMapper);
+        IngestMapper mapper(jsonMapper.GetObject());
         int objCount = processFile(fileName, mapper);
         // for now we read and process the whole file before commiting, but we
         // might change that to iterate and commit as needed.
@@ -76,21 +77,20 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
       }
     }
 
-    objy::db::Transaction.getCurrent().commit();
+    tx->commit();
     //long timeDiff = System.currentTimeMillis() - timeStart;
     //LOG.info("Time: {} sec", (timeDiff/1000.0));
-
   } catch (ooKernelException& ex) {
     std::cout << ex.what() << std::endl;
   }
 }
 
-void csv::IngestCSV::checkpoint(objy::db::Transaction& tx) {
-  tx.commit();
-  tx.start(objy::db::OpenMode::Update);
+void csv::IngestCSV::checkpoint(objy::db::Transaction* const tx) {
+  tx->commit();
+  tx->start(objy::db::OpenMode::Update);
 }
 
-int csv::IngestCSV::processFile(std::string& fileName, IngestMapper& mapper) {
+int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
   //LOG.info("Starting Ingest for: {}: ", fileName);
 
   csv::ClassAccessor* classProxy = csv::SchemaManager::getInstance()->getClassProxy(mapper.getClassName());

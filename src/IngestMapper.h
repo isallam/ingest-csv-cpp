@@ -57,7 +57,7 @@ namespace csv {
     IngestMapper(const IngestMapper& orig);
     virtual ~IngestMapper();
 
-    IngestMapper(rapidjson::Document& json);
+    IngestMapper(rapidjson::Document::Object json);
 
     std::string getClassName() {
       return className;

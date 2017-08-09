@@ -15,6 +15,7 @@
 #define INGESTCSV_H
 #include <string>
 #include "IngestMapper.h"
+#include <objy/db/Transaction.h>
 
 namespace csv {
 
@@ -25,8 +26,8 @@ namespace csv {
     virtual ~IngestCSV();
     void ingest(std::string csvFile, std::string mapperFile, int commitEvery);
   private:
-    void checkpoint(objy::db::Transaction tx);
-    int processFile(std::string& fileName, csv::IngestMapper& mapper);
+    void checkpoint(objy::db::Transaction* const tx);
+    int processFile(std::string fileName, csv::IngestMapper& mapper);
   };
 }
 #endif /* INGESTCSV_H */

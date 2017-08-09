@@ -32,12 +32,8 @@ namespace csv {
       delete _format;
     }
 
-    CSVParser(const string& fileName, csv::CSVFormat* format)
-    : CSVParser(fileName, format, 0, 1) {
-    }
-
-    CSVParser(const string& fileName, csv::CSVFormat* format,
-            long characterOffset, long recordNumber) {
+    CSVParser(const string fileName, csv::CSVFormat* const format,
+            long characterOffset = 0, long recordNumber = 1) {
       _format = format;
       _fileName = fileName;
       _characterOffset = characterOffset;

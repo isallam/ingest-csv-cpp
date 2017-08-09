@@ -19,8 +19,10 @@
 #include <fstream>
 #include "error.h"
 
-namespace csv {
+#include "CSVFormat.h"
 
+namespace csv {
+ 
   /**
    * Helper function 
    */
@@ -314,7 +316,7 @@ namespace csv {
 
   public:
 
-    Lexer(csv::CSVFormat* format, const string& fileName) {
+    Lexer(CSVFormat* const format, const string& fileName) {
       _delimiter = format->getDelimiter();
       _escape = mapNullToDisabled(format->getEscapeCharacter());
       _quoteChar = mapNullToDisabled(format->getQuoteCharacter());

@@ -33,7 +33,6 @@ using namespace std;
 namespace csv {
 
   typedef map<std::string, objy::data::Attribute> AttributeMap;
-  typedef map<std::string, objy::data::Attribute>::iterator AttributeMapItr;
 
   class IngestMapper;
 
@@ -44,26 +43,26 @@ namespace csv {
     virtual ~ClassAccessor();
 
     void init();
-    objy::data::Attribute getAttribute(string attrName);
+    objy::data::Attribute getAttribute(const string attrName) const;
 
     void setMapper(csv::IngestMapper* ingestMapper) {
-      mapper = ingestMapper;
+      _mapper = ingestMapper;
     }
 
     string getClassName();
 
     objy::data::Class getObjyClass() {
-      return classRef;
+      return _classRef;
     }
 
     objy::data::Object createInstance() {
       //objectCreatedCounter++;
-      return objy::data::createPersistentObject(classRef);
+      return objy::data::createPersistentObject(_classRef);
     }
 
     objy::data::Object createObject(CSVRecord record);
     objy::data::Object createObject(vector<Property> properties);
-    objy::data::Object setAttributes(objy::data::Object instance, CSVRecord record);
+    objy::data::Object setAttributes(objy::data::Object& instance, CSVRecord record);
     void setAttributeValue(objy::data::Object instance,
             string attributeName, objy::data::Object value);
     void setReference(objy::data::Object instance,
@@ -82,10 +81,10 @@ namespace csv {
 
   private:
 
-    objy::data::Class classRef;
-    string className;
-    AttributeMap attributeMap;
-    IngestMapper* mapper;
+    objy::data::Class _classRef;
+    string            _className;
+    AttributeMap      _attributeMap;
+    IngestMapper*     _mapper;
 
   };
 }

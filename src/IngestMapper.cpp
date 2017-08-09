@@ -25,7 +25,7 @@ csv::IngestMapper::IngestMapper(const IngestMapper& orig) {
 csv::IngestMapper::~IngestMapper() {
 }
 
-csv::IngestMapper::IngestMapper(rapidjson::Document& json) {
+csv::IngestMapper::IngestMapper(rapidjson::Document::Object json) {
   // construct needed information for processing data from the jsonObject
   className = json[ClassNameJSON].GetString();
 

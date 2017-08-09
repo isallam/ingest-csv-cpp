@@ -12,6 +12,9 @@
  */
 
 #include "SchemaManager.h"
+#include "ClassAccessor.h"
+
+//csv::SchemaManager::_instance = nullptr;
 
 csv::SchemaManager::SchemaManager() {
 }
@@ -22,23 +25,24 @@ csv::SchemaManager::SchemaManager(const SchemaManager& orig) {
 csv::SchemaManager::~SchemaManager() {
 }
 
-csv::SchemaManager* SchemaManager::getInstance() {
-    if (schemaManagerInstance == std::nullptr_t) {
-      schemaManagerInstance = new SchemaManager();
-    }
-    return schemaManagerInstance;
+csv::SchemaManager* csv::SchemaManager::getInstance() {
+  if (!csv::SchemaManager::_instance) {
+    csv::SchemaManager::_instance = new csv::SchemaManager();
+  }
+  return csv::SchemaManager::_instance;
+}
+
+csv::ClassAccessor* csv::SchemaManager::getClassProxy(std::string className) {
+  csv::ClassAccessor* classAccessor = nullptr;
+
+  if (_classProxyMap.find(className) == _classProxyMap.end()) {
+    classAccessor = new csv::ClassAccessor(className);
+    classAccessor->init();
+    _classProxyMap[className] = classAccessor;
   }
 
-
-ClassAccessor* csv::SchemaManager::getClassProxy(std::string className) {
-    ClassAccessor* classAccessor = nullptr;
-    
-    if (!classProxyMap.containsKey(className)) {
-      classAccessor = new ClassAccessor(className);
-      classAccessor->init();
-      classProxyMap.put(className, classAccessor);
-    }
-    
-    classAccessor = classProxyMap.get(className);
-    return classAccessor;
-  }
+  if (classAccessor == nullptr)
+    classAccessor = _classProxyMap[className];
+  
+  return classAccessor;
+}

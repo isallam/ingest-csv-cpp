@@ -27,46 +27,45 @@ namespace csv {
 
   class ClassAccessor;
 
+  class RelationshipRef {
+  private:
+    csv::TargetKey _key;
+    string _refAttrName;
+    string _revRefAttrName;
+    string _revRefClassName;
+    ClassAccessor* _revRefClassProxy;
+
+  public:
+
+    RelationshipRef(TargetKey& key, std::string& refAttrName,
+            std::string& revRefAttrName, string& revRefClassName) {
+      _key = key;
+      _refAttrName = refAttrName;
+      _revRefAttrName = revRefAttrName;
+      _revRefClassName = revRefClassName;
+      _revRefClassProxy = nullptr;
+    }
+
+    csv::TargetKey getKey() {
+      return _key;
+    }
+
+    std::string getRefAttrName() {
+      return _refAttrName;
+    }
+
+    std::string getRevRefAttrName() {
+      return _revRefAttrName;
+    }
+
+    csv::ClassAccessor* getRevRefClassProxy() {
+      if (_revRefClassProxy == nullptr)
+        _revRefClassProxy = csv::SchemaManager::getInstance()->getClassProxy(_revRefClassName);
+      return _revRefClassProxy;
+    }
+  };
+
   class Relationship {
-
-    class RelationshipRef {
-    private:
-      csv::TargetKey _key;
-      string _refAttrName;
-      string _revRefAttrName;
-      string _revRefClassName;
-      ClassAccessor* _revRefClassProxy;
-
-    public:
-
-      RelationshipRef(TargetKey& key, std::string& refAttrName, 
-              std::string& revRefAttrName, string& revRefClassName) {
-        _key = key;
-        _refAttrName = refAttrName;
-        _revRefAttrName = revRefAttrName;
-        _revRefClassName = revRefClassName;
-        _revRefClassProxy = nullptr;
-      }
-
-      csv::TargetKey getKey() {
-        return _key;
-      }
-
-      std::string getRefAttrName() {
-        return _refAttrName;
-      }
-
-      std::string getRevRefAttrName() {
-        return _revRefAttrName;
-      }
-
-      csv::ClassAccessor* getRevRefClassProxy() {
-        if (_revRefClassProxy == nullptr)
-          _revRefClassProxy = csv::SchemaManager::getInstance()->getClassProxy(_revRefClassName);
-        return _revRefClassProxy;
-      }
-    };
-
   public:
 
     Relationship() : _targetList(nullptr), _isToOne(true) {
@@ -79,10 +78,10 @@ namespace csv {
       _isToOne = !isToMany;
     }
 
-//    Relationship(std::string toClassName, bool isToMany) {
-//      _toClassName = toClassName;
-//      _isToOne = !isToMany;
-//    }
+    //    Relationship(std::string toClassName, bool isToMany) {
+    //      _toClassName = toClassName;
+    //      _isToOne = !isToMany;
+    //    }
 
     std::string toClassName() {
       return _toClassName;

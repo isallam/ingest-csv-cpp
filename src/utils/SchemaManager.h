@@ -36,9 +36,8 @@ namespace csv {
 
   private:
 
-    ClassAccessorMap classProxyMap;
-
-    static csv::SchemaManager* schemaManagerInstance;
+    ClassAccessorMap      _classProxyMap;
+    static SchemaManager* _instance;
 
   };
 
