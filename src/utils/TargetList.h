@@ -71,13 +71,19 @@ namespace csv {
 
     void addToTargetInfoMap(CSVRecord record,
             vector<SingleKey> singleKeywords);
+    
     void addToTargetInfoMap(vector<Property> nameValues);
-    objy::data::Object getTargetObjectForKyes(CSVRecord record,
-            vector<SingleKey> keys);
-    objy::data::Object getTargetObject(vector<string> values);
+    
+    objy::data::Object getTargetObjectForKey(CSVRecord record,
+            SingleKey key);
+    objy::data::Object getTargetObjectForKey(CSVRecord record,
+            CompositeKey key);
+    
+    objy::data::Object getTargetObject(long hashValue);
 
     static long hashOfValues(Property nameValue);
     static long hashOfValues(vector<Property> nameValues);
+    
     static long hash(vector<string> values);
 
   };

@@ -80,19 +80,20 @@ namespace csv {
     virtual ~CompositeKey();
 
     CompositeKey(std::vector<SingleKey> singleKeys) {
-      keys = singleKeys;
+      _keys = singleKeys;
     }
 
     std::string toString() {
       std::string strBuffer;
-      for (SingleKey key : keys) {
+      for (SingleKey key : _keys) {
         strBuffer += key.toString() + " \n ";
       }
       return strBuffer;
     }
 
+    std::vector<SingleKey> keys() { return _keys; }
   private:
-    std::vector<SingleKey> keys;
+    std::vector<SingleKey> _keys;
 
   };
 

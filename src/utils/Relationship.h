@@ -46,11 +46,11 @@ namespace csv {
       _revRefClassProxy = nullptr;
     }
 
-    csv::TargetKey getKey() {
+    csv::TargetKey& getKey() {
       return _key;
     }
 
-    std::string getRefAttrName() {
+    std::string& getRefAttrName() {
       return _refAttrName;
     }
 

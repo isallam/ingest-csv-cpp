@@ -52,63 +52,64 @@ void csv::TargetList::addToTargetInfoMap(CSVRecord record,
   addToTargetInfoMap(nameValues);
 }
 
-void csv::TargetList::addToTargetInfoMap(Property... nameValues) {
+void csv::TargetList::addToTargetInfoMap(vector<Property> nameValues) {
 
   TargetInfo idInfo = new TargetList.TargetInfo(nameValues);
   long hashValue = hashOfValues(nameValues);
-  targetInfoMap.put(hashValue, idInfo);
+  targetInfoMap[hashValue] = idInfo;
 }
 
 
-Instance csv::TargetList::getTargetObject(CSVRecord record, TargetKey key) {
-  Instance instance = null;
-  try {
-    if (key instanceof SingleKey) {
-      instance = getTargetObjectForKyes(record, (SingleKey) key);
-    } else { // it's a composite keyword.
-      instance = getTargetObjectForKyes(record, ((CompositeKey) key).keys);
-    }
-  } catch (Exception ex) {
-    LOG.error("Error for key(s): {}", key.toString());
-    //ex.printStackTrace();
-    throw ex;
-  }
+objy::data::Object  csv::TargetList::getTargetObject(
+    csv::CSVRecord record, csv::TargetKey& key) {
+  objy::data::Object  instance;
+  // TBD... handle error 
+ // try {
+      instance = getTargetObjectForKey(record, key);
+//  } catch (Exception ex) {
+//    LOG.error("Error for key(s): {}", key.toString());
+//    //ex.printStackTrace();
+//    throw ex;
+//  }
 
   return instance;
 }
 
-Instance csv::TargetList::getTargetObjectForKyes(CSVRecord record,
-        SingleKey... keys) {
-  //    Object[] values = new Property[keys.length];
+objy::data::Object csv::TargetList::getTargetObjectForKey(csv::CSVRecord record,
+        SingleKey key) {
+  return getTargetObject(hash(key.getCorrectValue(record)));
+}
+
+objy::data::Object csv::TargetList::getTargetObjectForKey(csv::CSVRecord record,
+        CompositeKey key) {
   vector<string> values;
-  for (SingleKey key : keys) {
+  for (SingleKey aKey : key.keys()) {
     //values[i] = record.get(key.rawFileAttrName);
-    values.push_back(key.getCorrectValue(record));
+    values.push_back(aKey.getCorrectValue(record));
   }
-  return getTargetObject(values);
+  return getTargetObject(hash(values));
 }
 
-long csv::TargetList::hashOfValues(Property... nameValues) {
-  String value = "";
+long csv::TargetList::hashOfValues(vector<Property> nameValues) {
+  string value = "";
   for (Property nameValue : nameValues) {
-    value += nameValue.attrValue.toString();
+    value += nameValue.getValue();
   }
-  return value.hashCode();
+  return std::hash<std::string>()(value);
 }
 
-long csv::TargetList::hash(Object... values) {
+long csv::TargetList::hash(vector<string> values) {
   String value = "";
-  for (Object obj : values) {
-    value += obj.toString();
+  for (auto& str : values) {
+    value += str;
   }
-  return value.hashCode();
+  return std::hash<std::string>()(value);
 }
 
-objy::data::Object& csv::TargetList::getTargetObject(vector<string> values) {
-  long hashValue = hash(values);
+objy::data::Object& csv::TargetList::getTargetObject(long hashValue) {
   objy::data::Object instance;
 
-  TargetInfo targetInfo = targetInfoMap.get(hashValue);
+  TargetInfo targetInfo = targetInfoMap[hashValue];
   if (targetInfo != null)
     instance = targetInfo.targetObject.getInstance();
 

@@ -29,11 +29,11 @@ namespace csv {
       attrValue = value;
     }
 
-    std::string getName() {
+    std::string& getName() {
       return attrName;
     }
 
-    std::string getValue() {
+    std::string& getValue() {
       return attrValue;
     }
 

@@ -62,19 +62,19 @@ namespace csv {
 
     objy::data::Object createObject(CSVRecord record);
     objy::data::Object createObject(vector<Property> properties);
-    objy::data::Object setAttributes(objy::data::Object& instance, CSVRecord record);
-    void setAttributeValue(objy::data::Object instance,
-            string attributeName, objy::data::Object value);
-    void setReference(objy::data::Object instance,
-            string attributeName, objy::data::Object value);
-    void addReference(objy::data::Object instance,
-            string attributeName, objy::data::Object value);
+    objy::data::Object& setAttributes(objy::data::Object& instance, csv::CSVRecord& record);
+    void setAttributeValue(objy::data::Object& instance,
+            string& attributeName, objy::data::Variable& value);
+    void setReference(objy::data::Object& instance,
+            string& attributeName, const objy::data::Object& value);
+    void addReference(objy::data::Object& instance,
+            string& attributeName, objy::data::Object& value);
 
   private:
     void setAttributeValue(objy::data::Object& instance,
             objy::data::Attribute& attribute, objy::data::Variable& value);
     void setReference(objy::data::Object& instance,
-            objy::data::Attribute& attribute, objy::data::Object& value);
+            objy::data::Attribute& attribute, const objy::data::Object& value);
     bool doesListContainReference(objy::data::List& list, objy::data::Object& value);
     void addReferenceIfDoesnotExist(objy::data::Map& map, objy::data::Reference& objRef);
 
