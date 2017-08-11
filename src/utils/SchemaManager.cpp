@@ -16,15 +16,6 @@
 
 //csv::SchemaManager::_instance = nullptr;
 
-csv::SchemaManager::SchemaManager() {
-}
-
-csv::SchemaManager::SchemaManager(const SchemaManager& orig) {
-}
-
-csv::SchemaManager::~SchemaManager() {
-}
-
 csv::SchemaManager* csv::SchemaManager::getInstance() {
   if (!csv::SchemaManager::_instance) {
     csv::SchemaManager::_instance = new csv::SchemaManager();
@@ -32,17 +23,15 @@ csv::SchemaManager* csv::SchemaManager::getInstance() {
   return csv::SchemaManager::_instance;
 }
 
-csv::ClassAccessor* csv::SchemaManager::getClassProxy(std::string className) {
-  csv::ClassAccessor* classAccessor = nullptr;
+csv::ClassAccessor*& csv::SchemaManager::getClassProxy(const string& className) {
 
-  if (_classProxyMap.find(className) == _classProxyMap.end()) {
-    classAccessor = new csv::ClassAccessor(className);
+  auto itr = _classProxyMap.find(className);
+  if (itr == _classProxyMap.end()) {
+    csv::ClassAccessor* classAccessor = new csv::ClassAccessor(className);
     classAccessor->init();
     _classProxyMap[className] = classAccessor;
+    return classAccessor;
   }
 
-  if (classAccessor == nullptr)
-    classAccessor = _classProxyMap[className];
-  
-  return classAccessor;
+  return itr->second;
 }

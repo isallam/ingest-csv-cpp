@@ -41,7 +41,7 @@ namespace csv {
     virtual ~CSVRecord() {
     }
 
-    string& get(int index) {
+    string get(int index) const {
       try {
         return _values.at(index);
       } catch (std::out_of_range& ex) {
@@ -51,7 +51,7 @@ namespace csv {
       }
     }
 
-    string& get(string& name) {
+    string get(const string& name) const {
       if (_mapping == nullptr) {
         //cerr << "No header mapping was specified, the record values can't be accessed by name" << endl;
         throw std::invalid_argument("No header mapping was specified, the record values can't be accessed by name");

@@ -7,6 +7,7 @@ set(SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/SchemaManager.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/ClassAccessor.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/TargetList.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/option.cpp
 		PARENT_SCOPE
 )
  

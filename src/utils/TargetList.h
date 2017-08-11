@@ -18,7 +18,6 @@
 #include <objy/target_finder/TargetFinder.h>
 #include <objy/target_finder/ObjectTarget.h>
 #include "Property.h"
-#include "ClassAccessor.h"
 #include "TargetKey.h"
 
 
@@ -26,65 +25,71 @@ using namespace std;
 
 namespace csv {
 
+  class ClassAccessor;
+  
+  /******
+   * Helper class to hold the target object reference for further processing.
+   */
+  struct TargetInfo {
+    std::vector<Property> _nameValues;
+    objy::target_finder::ObjectTargetHandle _targetObject;
+
+    TargetInfo(const vector<Property>& nameValues) : _nameValues(nameValues){
+    }
+  };
+
   class TargetList {
   public:
-    TargetList();
-    TargetList(const TargetList& orig);
-    virtual ~TargetList();
+    TargetList() = delete;
+    TargetList(const TargetList& orig) = delete;
+    TargetList(TargetList&& other) = delete;
 
-    TargetList(csv::ClassAccessor* aTargetClass, std::vector<csv::TargetKey> theTargetKeys) {
-      targetClass = aTargetClass;
-      targetKeys = theTargetKeys;
+    virtual ~TargetList() {
     }
 
-    TargetList(csv::ClassAccessor* aTargetClass, TargetKey*& targetKey) {
-      targetClass = aTargetClass;
-      targetKeys.push_back(*targetKey);
+    TargetList(const csv::ClassAccessor* targetClass, const vector<csv::TargetKey*>& targetKeys) :
+    _targetClass(targetClass), _targetKeys(targetKeys) {
+    }
+
+    TargetList(const csv::ClassAccessor* targetClass, TargetKey* const targetKey) :
+    _targetClass(targetClass) {
+      _targetKeys.push_back(targetKey);
     }
 
     void collectTargetInfo(CSVRecord record);
-    objy::data::Object getTargetObject(CSVRecord record, TargetKey& key);
+    objy::data::Object getTargetObject(const csv::CSVRecord& record, TargetKey* key);
     void fetchTargets();
     int createMissingTargets();
 
   private:
 
-    /******
-     * Helper class to hold the target object reference for further processing.
-     */
-    class TargetInfo {
-      std::vector<Property> nameValues;
-      objy::target_finder::ObjectTargetHandle targetObject;
-
-      TargetInfo(vector<Property> nameValues) {
-        nameValues = nameValues;
-      }
-    };
-
-
     //---------------------
     // local attributes...
     //---------------------
-    std::map<int64, TargetInfo> targetInfoMap;
-    csv::ClassAccessor* targetClass;
-    std::vector<TargetKey> targetKeys;
+    map<int64, TargetInfo*> _targetInfoMap;
+    const csv::ClassAccessor* _targetClass;
+    vector<TargetKey*> _targetKeys;
 
+    void addToTargetInfoMap(CSVRecord record, TargetKey* key) {
+      throw std::invalid_argument("calling the default addToTargetInfoMap()");
+    }
+    
     void addToTargetInfoMap(CSVRecord record,
-            vector<SingleKey> singleKeywords);
-    
-    void addToTargetInfoMap(vector<Property> nameValues);
-    
-    objy::data::Object getTargetObjectForKey(CSVRecord record,
-            SingleKey key);
-    objy::data::Object getTargetObjectForKey(CSVRecord record,
-            CompositeKey key);
-    
+            SingleKey* key);
+    void addToTargetInfoMap(CSVRecord record,
+            CompositeKey* key);
+
+    void addToTargetInfoMap(const vector<Property>& nameValues);
+
+    objy::data::Object getTargetObjectForKey(csv::CSVRecord record,
+            csv::TargetKey* key);
+  
     objy::data::Object getTargetObject(long hashValue);
 
     static long hashOfValues(Property nameValue);
     static long hashOfValues(vector<Property> nameValues);
-    
-    static long hash(vector<string> values);
+
+    static long hash(string values);
 
   };
 }

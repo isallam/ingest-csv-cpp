@@ -19,22 +19,29 @@ namespace csv {
 
   class Property {
   private:
-    std::string attrName;
-    std::string attrValue;
+    std::string _attrName;
+    std::string _attrValue;
 
   public:
 
-    Property(std::string name, std::string value) {
-      attrName = name;
-      attrValue = value;
+    Property(const std::string& name, const std::string& value) :
+    _attrName(name), _attrValue(value) {
     }
 
-    std::string& getName() {
-      return attrName;
+    Property(const Property& other) :
+    _attrName(other._attrName), _attrValue(other._attrValue) {
     }
 
-    std::string& getValue() {
-      return attrValue;
+    Property(Property&& other) :
+    _attrName(std::move(other._attrName)), _attrValue(std::move(other._attrValue)) {
+    }
+
+    std::string getName() const {
+      return _attrName;
+    }
+
+    std::string getValue() const {
+      return _attrValue;
     }
 
   };

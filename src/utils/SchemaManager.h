@@ -17,24 +17,25 @@
 #include <map>
 #include <string>
 
+using namespace std;
+
 namespace csv {
 
   class ClassAccessor;
 
-  typedef std::map<std::string, ClassAccessor*> ClassAccessorMap;
-  typedef std::map<std::string, ClassAccessor*>::iterator ClassAccessorMapItr;
+  typedef std::map<string, ClassAccessor*> ClassAccessorMap;
 
   class SchemaManager {
   public:
-    SchemaManager();
-    SchemaManager(const csv::SchemaManager& orig);
-    virtual ~SchemaManager();
+    SchemaManager(const csv::SchemaManager& orig) = delete;
+    virtual ~SchemaManager() {}
 
     static csv::SchemaManager* getInstance();
 
-    csv::ClassAccessor* getClassProxy(std::string className);
+    csv::ClassAccessor*& getClassProxy(const string& className);
 
   private:
+    SchemaManager() {}
 
     ClassAccessorMap      _classProxyMap;
     static SchemaManager* _instance;

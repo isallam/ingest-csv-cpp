@@ -19,29 +19,49 @@
 #include <objy/data/Data.h>
 #include "csv/CSVRecord.h"
 
+using namespace std;
+
 namespace csv {
 
   class TargetKey {
+  public:
+    virtual string toString() = 0;
+    virtual string getCorrectValue(CSVRecord record) = 0;
+    virtual string getAttrName() = 0;
+    virtual string getRawFileAttrName() = 0;
   };
 
+  /***********************************/
+  /*      SingleKey                  */
+
+  /***********************************/
   class SingleKey : public TargetKey {
   public:
-    SingleKey();
-    SingleKey(const SingleKey& orig);
-    virtual ~SingleKey();
+    SingleKey() = delete;
 
-    SingleKey(string attrName, string rawFileAttrName,
-            objy::data::LogicalType::type logicalType) {
-      attrName = attrName;
-      rawFileAttrName = rawFileAttrName;
-      logicalType = logicalType;
+    virtual ~SingleKey() {
+    }
+
+    SingleKey(const string& attrName, const string& rawFileAttrName,
+            objy::data::LogicalType::type logicalType) :
+    _attrName(attrName), _rawFileAttrName(rawFileAttrName), _logicalType(logicalType) {
+    }
+
+    SingleKey(const SingleKey& orig) :
+    _attrName(orig._attrName), _rawFileAttrName(orig._rawFileAttrName), _logicalType(orig._logicalType) {
+    }
+
+    SingleKey(SingleKey&& orig) :
+    _attrName(std::move(orig._attrName)),
+    _rawFileAttrName(std::move(orig._rawFileAttrName)), _logicalType(std::move(orig._logicalType)) {
     }
 
     string toString() {
       string retString;
 
-      retString = "attrName: " + attrName + ", rawFileName: " + rawFileAttrName +
-              ", logicalType: " + objy::data::LogicalType::toString(logicalType);
+      retString = "attrName: " + _attrName +
+              ", rawFileName: " + _rawFileAttrName +
+              ", logicalType: " + objy::data::LogicalType::toString(_logicalType);
 
       return retString;
     }
@@ -62,38 +82,78 @@ namespace csv {
       //      return attrValue;
       //    }
       //    else 
-      return record.get(rawFileAttrName);
+      return record.get(_rawFileAttrName);
+    }
+
+    string getAttrName() {
+      return _attrName;
+    }
+
+    string getRawFileAttrName() {
+      return _rawFileAttrName;
+    }
+
+    std::vector<SingleKey> keys() const {
+      throw std::invalid_argument("SingleKey does implement keys()");
     }
 
 
   private:
-    string attrName;
-    string rawFileAttrName;
-    objy::data::LogicalType::type logicalType;
+    string _attrName;
+    string _rawFileAttrName;
+    objy::data::LogicalType::type _logicalType;
 
   };
 
+  /***********************************/
+  /*      CompositeKey               */
+
+  /***********************************/
   class CompositeKey : public TargetKey {
   public:
-    CompositeKey();
-    CompositeKey(const CompositeKey& orig);
-    virtual ~CompositeKey();
+    CompositeKey() = delete;
+    CompositeKey(const CompositeKey& orig) = delete;
 
-    CompositeKey(std::vector<SingleKey> singleKeys) {
-      _keys = singleKeys;
+    virtual ~CompositeKey() {
+    }
+
+    CompositeKey(std::vector<SingleKey*> singleKeys) : _keys(singleKeys) {
+    }
+
+    CompositeKey(CompositeKey&& other) : _keys(std::move(other._keys)) {
     }
 
     std::string toString() {
       std::string strBuffer;
-      for (SingleKey key : _keys) {
-        strBuffer += key.toString() + " \n ";
+      for (SingleKey* key : _keys) {
+        strBuffer += key->toString() + " \n ";
       }
       return strBuffer;
     }
 
-    std::vector<SingleKey> keys() { return _keys; }
+    virtual string getCorrectValue(CSVRecord record) {
+      string value = "";
+      for (SingleKey* aKey : _keys) {
+        value += aKey->getCorrectValue(record);
+      }
+      return value;
+    }
+
+    string getAttrName() {
+      throw std::invalid_argument("CompositeKey does implement getAttrName()");
+    }
+
+    string getRawFileAttrName() {
+      throw std::invalid_argument("CompositeKey does implement getRarFileAttrName()");
+    }
+
+    std::vector<SingleKey*> keys() const {
+      return _keys;
+    }
+
+
   private:
-    std::vector<SingleKey> _keys;
+    std::vector<SingleKey*> _keys;
 
   };
 

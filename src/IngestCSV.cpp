@@ -21,6 +21,7 @@
 #include "utils/csv/CSVFormat.h"
 #include "utils/csv/CSVRecord.h"
 #include "utils/Relationship.h"
+#include "utils/ClassAccessor.h"
 
 using namespace std;
 
@@ -93,7 +94,7 @@ void csv::IngestCSV::checkpoint(objy::db::Transaction* const tx) {
 int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
   //LOG.info("Starting Ingest for: {}: ", fileName);
 
-  csv::ClassAccessor* classProxy = csv::SchemaManager::getInstance()->getClassProxy(mapper.getClassName());
+  csv::ClassAccessor*& classProxy = csv::SchemaManager::getInstance()->getClassProxy(mapper.getClassName());
   classProxy->setMapper(&mapper);
   vector<csv::CSVRecord> records;
 

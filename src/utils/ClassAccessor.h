@@ -38,45 +38,62 @@ namespace csv {
 
   class ClassAccessor {
   public:
-    ClassAccessor(std::string className);
-    ClassAccessor(const ClassAccessor& orig);
-    virtual ~ClassAccessor();
+    ClassAccessor(const ClassAccessor& orig) = delete;
+ 
+    virtual ~ClassAccessor() {
+    }
+
+    ClassAccessor(const std::string& name) :
+    _className(name), _mapper(nullptr) {
+    }
+
+    ClassAccessor(ClassAccessor&& other) :
+      _className(std::move(other._className)), 
+      _classRef(std::move(other._classRef)),
+      _attributeMap(std::move(other._attributeMap)),
+      _mapper(other._mapper)
+    {
+      other._mapper = nullptr;
+    }
 
     void init();
-    objy::data::Attribute getAttribute(const string attrName) const;
+    objy::data::Attribute getAttribute(const string& attrName) const;
 
     void setMapper(csv::IngestMapper* ingestMapper) {
       _mapper = ingestMapper;
     }
 
-    string getClassName();
+    string getClassName() const {
+      return _className;
+    }
 
-    objy::data::Class getObjyClass() {
+    objy::data::Class getObjyClass() const {
       return _classRef;
     }
 
-    objy::data::Object createInstance() {
+    objy::data::Object createInstance() const {
       //objectCreatedCounter++;
       return objy::data::createPersistentObject(_classRef);
     }
 
-    objy::data::Object createObject(CSVRecord record);
-    objy::data::Object createObject(vector<Property> properties);
-    objy::data::Object& setAttributes(objy::data::Object& instance, csv::CSVRecord& record);
+    objy::data::Object createObject(const csv::CSVRecord& record) const;
+    objy::data::Object createObject(const vector<Property>& properties) const;
+    void setAttributes(objy::data::Object& instance, 
+            const csv::CSVRecord& record) const;
     void setAttributeValue(objy::data::Object& instance,
-            string& attributeName, objy::data::Variable& value);
+            const string& attributeName, const objy::data::Variable& value) const;
     void setReference(objy::data::Object& instance,
-            string& attributeName, const objy::data::Object& value);
+            const string& attributeName, const objy::data::Object& value) const;
     void addReference(objy::data::Object& instance,
-            string& attributeName, objy::data::Object& value);
+            const string& attributeName, const objy::data::Object& value) const;
 
   private:
     void setAttributeValue(objy::data::Object& instance,
-            objy::data::Attribute& attribute, objy::data::Variable& value);
+            const objy::data::Attribute& attribute, const objy::data::Variable& value) const;
     void setReference(objy::data::Object& instance,
-            objy::data::Attribute& attribute, const objy::data::Object& value);
-    bool doesListContainReference(objy::data::List& list, objy::data::Object& value);
-    void addReferenceIfDoesnotExist(objy::data::Map& map, objy::data::Reference& objRef);
+            const objy::data::Attribute& attribute, const objy::data::Object& value) const;
+    bool doesListContainReference(const objy::data::List& list, const objy::data::Object& value) const;
+    void addReferenceIfDoesnotExist(objy::data::Map& map, const objy::data::Reference& objRef) const;
 
 
   private:

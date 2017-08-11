@@ -53,66 +53,66 @@ namespace csv {
 
   class IngestMapper {
   public:
-    IngestMapper();
-    IngestMapper(const IngestMapper& orig);
-    virtual ~IngestMapper();
+    IngestMapper() = delete;
+    IngestMapper(const IngestMapper& orig) = delete;
+    virtual ~IngestMapper() {
+      delete _classKey;
+      delete _classTargetList;
+    }
 
     IngestMapper(rapidjson::Document::Object json);
 
-    std::string getClassName() {
-      return className;
+    const std::string& getClassName() const {
+      return _className;
     }
 
-    AttributeMapperMap& getStringsMap() {
-      return stringAttributeMap;
+    const AttributeMapperMap& getStringsMap() const {
+      return _stringAttributeMap;
     }
 
-    AttributeMapperMap& getFloatMap() {
-      return floatAttributeMap;
+    const AttributeMapperMap& getFloatMap() const {
+      return _floatAttributeMap;
     }
 
-    AttributeMapperMap& getIntegersMap() {
-      return integerAttributeMap;
+    const AttributeMapperMap& getIntegersMap() const {
+      return _integerAttributeMap;
     }
 
-    AttributeMapperMap& getDatesMap() {
-      return dateAttributeMap;
+    const AttributeMapperMap& getDatesMap() const {
+      return _dateAttributeMap;
     }
 
-    RelationshipList& getRelationshipList() {
-      return relationshipList;
+    const RelationshipList& getRelationshipList() const {
+      return _relationshipList;
     }
 
-    bool hasRelationships() {
+    bool hasRelationships() const {
       return (!getRelationshipList().empty());
     }
 
-    bool hasClassKey() {
-      return classKey != NULL;
+    bool hasClassKey() const {
+      return _classKey != nullptr;
     }
 
     csv::TargetList* getClassTargetList();
 
     csv::TargetKey* getClassKey() {
-      return classKey;
+      return _classKey;
     }
 
-  private:
+   private:
 
-
-  private:
-
-    std::string className;
-    csv::TargetKey* classKey;
-    csv::TargetList* classTargetList;
+    std::string      _className;
+    csv::TargetKey*  _classKey;
+    csv::TargetList* _classTargetList;
 
     // map schema attribute names to raw data name
-    AttributeMapperMap integerAttributeMap;
-    AttributeMapperMap floatAttributeMap;
-    AttributeMapperMap stringAttributeMap;
-    AttributeMapperMap dateAttributeMap;
+    AttributeMapperMap _integerAttributeMap;
+    AttributeMapperMap _floatAttributeMap;
+    AttributeMapperMap _stringAttributeMap;
+    AttributeMapperMap _dateAttributeMap;
 
-    RelationshipList relationshipList;
+    RelationshipList   _relationshipList;
 
     /**
      * 
@@ -123,7 +123,8 @@ namespace csv {
             AttributeMapperMap& stringAttributeMap);
     void processClassKey(rapidjson::Document::Array& jsonArray);
     void processRelationships(rapidjson::Document::Array& jsonArray);
-    objy::data::Attribute getAttribute(std::string& keySchemaName, ClassAccessor* classAccessor);
+    objy::data::Attribute getAttribute(const std::string& keySchemaName, 
+                                      csv::ClassAccessor*& classAccessor);
 
   };
 

@@ -14,16 +14,6 @@
 #include "ClassAccessor.h"
 #include "IngestMapper.h"
 
-csv::ClassAccessor::ClassAccessor(const ClassAccessor& orig) {
-}
-
-csv::ClassAccessor::~ClassAccessor() {
-}
-
-csv::ClassAccessor::ClassAccessor(std::string name) {
-  _className = name;
-}
-
 void csv::ClassAccessor::init() {
   _classRef = objy::data::lookupClass(_className.c_str());
   for (int i = 0; i < _classRef.numberOfAttributes(); i++)
@@ -34,7 +24,7 @@ void csv::ClassAccessor::init() {
   }
 }
 
-objy::data::Attribute csv::ClassAccessor::getAttribute(const std::string attrName) const {
+objy::data::Attribute csv::ClassAccessor::getAttribute(const string& attrName) const {
   AttributeMap::const_iterator itr = _attributeMap.find(attrName);
   if (itr == _attributeMap.end())
   {
@@ -46,13 +36,13 @@ objy::data::Attribute csv::ClassAccessor::getAttribute(const std::string attrNam
   return itr->second;
 }
 
-objy::data::Object csv::ClassAccessor::createObject(CSVRecord record) {
+objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) const {
 
   objy::data::Object instance;
 
   // check if we already have the instance
   if (_mapper->hasClassKey()) {
-    instance = _mapper->getClassTargetList()->getTargetObject(record, *_mapper->getClassKey());
+    instance = _mapper->getClassTargetList()->getTargetObject(record, _mapper->getClassKey());
   }
 
   if (instance.isNull()) {
@@ -62,16 +52,17 @@ objy::data::Object csv::ClassAccessor::createObject(CSVRecord record) {
   // iterate all relationships and resolve references
   for (auto& rel : _mapper->getRelationshipList()) {
     TargetList* relTarget = rel->getTargetList();
-    for (csv::RelationshipRef relRef : rel->getRelationshipRefList()) {
-      const objy::data::Object& refInstance = relTarget->getTargetObject(record, relRef.getKey());
+    auto refList = rel->getRelationshipRefList();
+    for (auto itr = refList.begin(); itr != refList.end(); itr++) {
+      objy::data::Object refInstance = relTarget->getTargetObject(record, itr->getKey());
       if (!refInstance.isNull())
       {
-        setReference(instance, relRef.getRefAttrName(), refInstance);
+        setReference(instance, itr->getRefAttrName(), refInstance);
       }
-      if (!relRef.getRevRefAttrName().empty()) // we have a reverse attribute to set
+      if (!itr->getRevRefAttrName().empty()) // we have a reverse attribute to set
       {
-        relRef.getRevRefClassProxy()->addReference(refInstance, 
-                relRef.getRevRefAttrName(), const_cast<objy::data::Object>(instance));
+        itr->getRevRefClassProxy()->addReference(refInstance, 
+                itr->getRevRefAttrName(), instance);
       }
     }
   }
@@ -88,7 +79,7 @@ objy::data::Object csv::ClassAccessor::createObject(CSVRecord record) {
  * @param properties
  * @return new created Instance
  */
-objy::data::Object csv::ClassAccessor::createObject(vector<Property> properties) {
+objy::data::Object csv::ClassAccessor::createObject(const vector<Property>& properties) const {
   objy::data::Object&& instance = createInstance();
   for (Property property : properties) {
     setAttributeValue(instance, property.getName(), property.getValue());
@@ -96,15 +87,14 @@ objy::data::Object csv::ClassAccessor::createObject(vector<Property> properties)
   return instance;
 }
 
-objy::data::Object& csv::ClassAccessor::setAttributes(
-    objy::data::Object& instance, csv::CSVRecord& record) {
+void csv::ClassAccessor::setAttributes(
+    objy::data::Object& instance, const csv::CSVRecord& record) const {
 
-
- AttributeMapperMap::iterator itr;
   string attrValueStr;
+  AttributeMapperMap::const_iterator itr;
 
   // iterate and create any Integer attribute
-  AttributeMapperMap& intMap = _mapper->getIntegersMap();
+  const AttributeMapperMap& intMap = _mapper->getIntegersMap();
   itr = intMap.begin();
 
   while (itr != intMap.end())
@@ -126,7 +116,7 @@ objy::data::Object& csv::ClassAccessor::setAttributes(
   }
 
   // iterate and create any Real atttribute
-  AttributeMapperMap& floatMap = _mapper->getFloatMap();
+  const AttributeMapperMap& floatMap = _mapper->getFloatMap();
   itr = floatMap.begin();
   
   while (itr != floatMap.end()) {
@@ -148,7 +138,7 @@ objy::data::Object& csv::ClassAccessor::setAttributes(
   }
 
   // iterate and create any string attribute
-  AttributeMapperMap& strMap = _mapper->getStringsMap();
+  const AttributeMapperMap& strMap = _mapper->getStringsMap();
   itr = strMap.begin();
   
   while (itr != strMap.end()) {
@@ -156,19 +146,18 @@ objy::data::Object& csv::ClassAccessor::setAttributes(
     itr++;
   }
 
-  return instance;
 }
 
 void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance, 
-        objy::data::Attribute& attribute, objy::data::Variable& value) {
+        const objy::data::Attribute& attribute, const objy::data::Variable& value) const {
   objy::data::Variable varValue;
   instance.attributeValue(attribute, varValue);
   varValue.set(value);
 }
 
 void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance, 
-        std::string& attributeName, objy::data::Variable& value) {
-  AttributeMap::iterator itr = _attributeMap.find(attributeName);
+        const std::string& attributeName, const objy::data::Variable& value) const {
+  AttributeMap::const_iterator itr = _attributeMap.find(attributeName);
   if (itr != _attributeMap.end())
   {
     setAttributeValue(instance, itr->second, value);
@@ -180,7 +169,7 @@ void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance,
 }
 
 void csv::ClassAccessor::setReference(objy::data::Object& instance, 
-        objy::data::Attribute& attribute, const objy::data::Object& value) {
+        const objy::data::Attribute& attribute, const objy::data::Object& value) const {
   objy::data::Variable varValue;
   instance.attributeValue(attribute, varValue);
 
@@ -188,11 +177,11 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
           attribute.attributeValueSpecification()->logicalType();
   
   if ( attrLogicalType == objy::data::LogicalType::List) {
-    objy::data::List& list = varValue.get<objy::data::List>();
+    objy::data::List list = varValue.get<objy::data::List>();
     if (!doesListContainReference(list, value))
       list.append(objy::data::Variable(objy::data::createReference(value)));
   } else if (attrLogicalType == objy::data::LogicalType::Map) {
-    const objy::data::Map& map = varValue.get<objy::data::Map>();
+    objy::data::Map map = varValue.get<objy::data::Map>();
     addReferenceIfDoesnotExist(map, objy::data::createReference(value));
   } else if (attrLogicalType == objy::data::LogicalType::Reference) {
     varValue.set(objy::data::createReference(value));
@@ -203,8 +192,8 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
 }
 
 void csv::ClassAccessor::setReference(objy::data::Object& instance, 
-        std::string& attributeName, const objy::data::Object& value) {
-  objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
+        const string& attributeName, const objy::data::Object& value) const {
+  const objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
   if (instance.isNull() || value.isNull() || attribute.isNull())
   {
     std::cerr << "For attr: " << attributeName 
@@ -216,13 +205,13 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
 }
 
 void csv::ClassAccessor::addReference(objy::data::Object& instance, 
-        std::string& attributeName, objy::data::Object& value) {
-  objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
+        const string& attributeName, const objy::data::Object& value) const {
+  const objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
   setReference(instance, attribute, value);
 }
 
-bool csv::ClassAccessor::doesListContainReference(objy::data::List& list, 
-        const objy::data::Object& value) {
+bool csv::ClassAccessor::doesListContainReference(const objy::data::List& list, 
+        const objy::data::Object& value) const {
   objy::data::Variable var;
   objy::uint_64 valueOid = value.identifier().get<objy::uint_64>();
   for (int i = 0; i < list.size(); i++) {
@@ -236,8 +225,8 @@ bool csv::ClassAccessor::doesListContainReference(objy::data::List& list,
   return false;
 }
 
-void csv::ClassAccessor::addReferenceIfDoesnotExist(const objy::data::Map& map, 
-        objy::data::Reference& objRef) {
+void csv::ClassAccessor::addReferenceIfDoesnotExist(objy::data::Map& map, 
+        const objy::data::Reference& objRef) const {
   // set the key and value in the map from the call object.... 
   ooId key = objy::data::oidFor(objRef);
   //System.out.println("call.getObjectId(): " + call.getObjectId().toString());
