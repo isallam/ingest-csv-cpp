@@ -16,6 +16,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -30,15 +31,25 @@ namespace csv {
     SchemaManager(const csv::SchemaManager& orig) = delete;
     virtual ~SchemaManager() {}
 
-    static csv::SchemaManager* getInstance();
+    static csv::SchemaManager* getInstance() {
+      cout << "in getInstance()" << endl;
+      if (!_instance) {
+        cout << "creating instance of schema manager" << endl;
+        _instance = new csv::SchemaManager();
+      }
+      cout << "returning instance" << endl;
+      return csv::SchemaManager::_instance;
+      
+    }
 
     csv::ClassAccessor*& getClassProxy(const string& className);
+
+    static SchemaManager* _instance;
 
   private:
     SchemaManager() {}
 
     ClassAccessorMap      _classProxyMap;
-    static SchemaManager* _instance;
 
   };
 

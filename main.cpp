@@ -16,6 +16,9 @@
  */
 
 #include <cstdlib>
+#include <string>
+#include <iostream>
+
 #include <ooObjy.h>
 #include <objy/Configuration.h>
 #include <objy/Tools.h>
@@ -34,10 +37,10 @@ namespace objyconfig = objy::configuration;
 using namespace std;
 
 namespace config {
-  static const char* CommitEvery   = "CommitEvery";
+  static const char* CommitEvery    = "CommitEvery";
   static const char* BootFilePath   = "BootFilePath";
   static const char* CSVFilePath    = "CSVFilePath";
-  static const char* CSVFilesPath   = "CSVFilesPath";
+  static const char* CSVPathPattern = "CSVPathPattern";
   static const char* MapperFilePath = "MapperFilePath";
 
 
@@ -64,25 +67,27 @@ public:
         .action("store")
         .type("string")
         .dest(BootFilePath)
-        .set_default("./data/fdtest.boot")
+        .set_default("/home/ibrahim/projects/ingest-csv-cpp/data/testfd.boot")
         .help("bootfile file path (default ./data/fdtest.boot)");
     optionParser
         .add_option("-f", "--csvFile")
         .action("store")
         .type("string")
         .dest(CSVFilePath)
+        .set_default("/home/ibrahim/projects/ingest-csv-cpp/source-data/people.csv")
         .help("full path to the csv file to ingest.");
     optionParser
-        .add_option("-d", "--csvFiles")
+        .add_option("-p", "--csvPathPattern")
         .action("store")
         .type("string")
-        .dest(CSVFilesPath)
-        .help("full path to the directory containing csv files");
+        .dest(CSVPathPattern)
+        .help("path pattern of csv files ");
     optionParser
         .add_option("-m", "--mapperFile")
         .action("store")
         .type("string")
         .dest(MapperFilePath)
+        .set_default("/home/ibrahim/projects/ingest-csv-cpp/config/personMapper.json")
         .help("full path to the JSON mapper file to aid the ingest process.");
     
     optparse::Values &values = optionParser.parse_args(argc, argv);
@@ -91,22 +96,14 @@ public:
     mapperFile = (const char*) values.get(MapperFilePath);
     commitEvery = values.get(CommitEvery).asInt32();
     
-    if (values.get(CSVFilePath))
-    {
-      csvFile = (const char*)values.get(CSVFilePath);
-    }
-    else if (values.get(CSVFilesPath))
-    {
-      csvFiles = (const char*) values.get(CSVFilesPath);
-      multipleFiles = true;
-    }
+    csvFile = (const char*)values.get(CSVFilePath);
+    csvPathPattern = (const char*) values.get(CSVPathPattern);
   }
-  std::string bootFile;
-  std::string csvFile;
-  std::string csvFiles;
-  std::string mapperFile;
+  string bootFile;
+  string csvFile;
+  string csvPathPattern;
+  string mapperFile;
   int commitEvery = 20000;
-  bool multipleFiles = false;
 };
 }
 
@@ -115,15 +112,15 @@ public:
  */
 int main(int argc, char** argv) {
 
-  std::string fdname;
+  string fdname;
   objydb::Connection* connection;
   objydb::Transaction* trx;
   config::_Params _params(argc, argv);
 
   // TBD... boot file is hard coded for now, will be params later
   //processParams(args);
-  fdname = "../data/fdtest.boot";
-  ooObjy::setLoggingOptions(oocLogAll, true, false, "../logs");
+  fdname =  _params.bootFile;
+  ooObjy::setLoggingOptions(oocLogAll, true, false, "/home/ibrahim/projects/ingest-csv-cpp/logs");
   ooObjy::startup(24);
 
   objyconfig::ConfigurationManager* cfgMgr = objyconfig::ConfigurationManager::getInstance();
@@ -131,15 +128,22 @@ int main(int argc, char** argv) {
 
   //connection = ooObjy::getConnection(bootfile);
   connection = objydb::Connection::connect(fdname.c_str());
-
+  
+  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
+  objy::data::Class clazz = objy::data::lookupClass("Person");
+  cout << "found class: " << clazz.name() << " in the FD" << endl;
+  tx->commit();
+  tx->release();
+  
   try {
-    trx = new objydb::Transaction(objydb::OpenMode::Update, "write_session");
     csv::IngestCSV ingester;
 
-    if (!_params.multipleFiles) {
+    if (_params.csvPathPattern.empty()) {
+      cout << "Processing file: " << _params.csvFile << endl;
       ingester.ingest(_params.csvFile, _params.mapperFile, _params.commitEvery);
     } else {
-      std::cout << "Processing files: " << _params.csvFiles << std::endl;
+      cout << "Processing files: " << _params.csvPathPattern << endl;
+      cout << "... TBD... " << endl;
       //      Paths paths = new Paths();
       //      Paths results = paths.glob(null, _params.csvFiles);
       //      System.out.println("found: " + results.count());
@@ -155,7 +159,6 @@ int main(int argc, char** argv) {
       //      }
     }
 
-    trx->commit();
   } catch (ooKernelException& e) {
     cout << e.what() << endl;
     return 1;

@@ -15,13 +15,16 @@
 #include "IngestMapper.h"
 
 void csv::ClassAccessor::init() {
-  _classRef = objy::data::lookupClass(_className.c_str());
-  for (int i = 0; i < _classRef.numberOfAttributes(); i++)
-  {
-    objy::data::Attribute attr = _classRef.attribute(i);
-    //Attribute attr = classRef.lookupAttribute(attrName);
-    _attributeMap[attr.name()] = attr;
-  }
+  cout << "locating class: " << _className.c_str() << endl;
+  objy::data::Class clazz = objy::data::lookupClass(_className.c_str());
+  cout << "... in init()...got: " << clazz.name() << endl;
+//  _classRef = clazz;
+//  for (int i = 0; i < _classRef.numberOfAttributes(); i++)
+//  {
+//    objy::data::Attribute attr = _classRef.attribute(i);
+//    //Attribute attr = classRef.lookupAttribute(attrName);
+//    _attributeMap[attr.name()] = attr;
+//  }
 }
 
 objy::data::Attribute csv::ClassAccessor::getAttribute(const string& attrName) const {
@@ -82,7 +85,7 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
 objy::data::Object csv::ClassAccessor::createObject(const vector<Property>& properties) const {
   objy::data::Object&& instance = createInstance();
   for (Property property : properties) {
-    setAttributeValue(instance, property.getName(), property.getValue());
+    setAttributeValue(instance, property.getName(), property.getValue().c_str());
   }
   return instance;
 }
@@ -142,7 +145,7 @@ void csv::ClassAccessor::setAttributes(
   itr = strMap.begin();
   
   while (itr != strMap.end()) {
-    setAttributeValue(instance, itr->first, record.get(itr->second));
+    setAttributeValue(instance, itr->first, record.get(itr->second).c_str());
     itr++;
   }
 
@@ -152,7 +155,8 @@ void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance,
         const objy::data::Attribute& attribute, const objy::data::Variable& value) const {
   objy::data::Variable varValue;
   instance.attributeValue(attribute, varValue);
-  varValue.set(value);
+  //varValue.set(value);
+  varValue = value;
 }
 
 void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance, 
@@ -179,7 +183,7 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
   if ( attrLogicalType == objy::data::LogicalType::List) {
     objy::data::List list = varValue.get<objy::data::List>();
     if (!doesListContainReference(list, value))
-      list.append(objy::data::Variable(objy::data::createReference(value)));
+      list.append(objy::data::createReference(value));
   } else if (attrLogicalType == objy::data::LogicalType::Map) {
     objy::data::Map map = varValue.get<objy::data::Map>();
     addReferenceIfDoesnotExist(map, objy::data::createReference(value));
@@ -228,10 +232,11 @@ bool csv::ClassAccessor::doesListContainReference(const objy::data::List& list,
 void csv::ClassAccessor::addReferenceIfDoesnotExist(objy::data::Map& map, 
         const objy::data::Reference& objRef) const {
   // set the key and value in the map from the call object.... 
-  ooId key = objy::data::oidFor(objRef);
+  ooId oid = objy::data::oidFor(objRef);
+  char* key = oid.sprint();
   //System.out.println("call.getObjectId(): " + call.getObjectId().toString());
-  if (!map.containsKey(key.sprint())) {
-    objy::data::Variable value(objRef);
-    map[key] = value;
+  if (!map.containsKey(key)) {
+    //objy::data::Variable value(objRef);
+    map[key] = objRef;
   }
 }

@@ -11,13 +11,16 @@
  * Created on July 20, 2017, 11:37 AM
  */
 
+#include <memory>
 #include <vector>
+
 #include "IngestMapper.h"
 #include "utils/ClassAccessor.h"
+#include "utils/SchemaManager.h"
 
 using namespace csv::ingester;
 
-csv::IngestMapper::IngestMapper(rapidjson::Document::Object json) {
+bool csv::IngestMapper::initialize(rapidjson::Document::Object json) {
   // construct needed information for processing data from the jsonObject
   _className = json[ClassNameJSON].GetString();
 
@@ -51,6 +54,7 @@ csv::IngestMapper::IngestMapper(rapidjson::Document::Object json) {
     processRelationships(jsonArray);
   }
 
+  return true;
 }
 
 /**
@@ -72,7 +76,6 @@ void csv::IngestMapper::processArray(rapidjson::Document::Array&  jsonArray,
 
 void csv::IngestMapper::processClassKey(rapidjson::Document::Array& jsonArray) {
 
-  csv::ClassAccessor*& classAccessor = csv::SchemaManager::getInstance()->getClassProxy(_className);
   std::vector<rapidjson::Document::Object> keys;
   for (auto& element : jsonArray) {
     rapidjson::Document::Object obj = element.GetObject();
@@ -86,7 +89,9 @@ void csv::IngestMapper::processClassKey(rapidjson::Document::Array& jsonArray) {
       std::string keySchemaName = keyObj[SchemaNameJSON].GetString();
       std::string keyRawName = keyObj[RawNameJSON].GetString();
       // get the type of the keySchemaName 
-      objy::data::Attribute attr = getAttribute(keySchemaName, classAccessor);
+      auto blah = csv::SchemaManager::getInstance();
+      auto classAccessor = blah->getClassProxy(_className);
+      objy::data::Attribute attr = classAccessor->getAttribute(keySchemaName);
 
       SingleKey* key = new SingleKey(keySchemaName, keyRawName,
               attr.attributeValueSpecification()->logicalType());
@@ -98,7 +103,9 @@ void csv::IngestMapper::processClassKey(rapidjson::Document::Array& jsonArray) {
     std::string keySchemaName = keyObj[SchemaNameJSON].GetString();
     std::string keyRawName = keyObj[RawNameJSON].GetString();
     // get the type of the keySchemaName 
-    objy::data::Attribute attr = getAttribute(keySchemaName, classAccessor);
+    auto blah = csv::SchemaManager::_instance; //csv::SchemaManager::getInstance();
+    auto classAccessor = blah->getClassProxy(_className);
+    objy::data::Attribute attr = classAccessor->getAttribute(keySchemaName);
     _classKey = new SingleKey(keySchemaName, keyRawName,
             attr.attributeValueSpecification()->logicalType());
   }
@@ -118,7 +125,7 @@ void csv::IngestMapper::processRelationships(rapidjson::Document::Array& jsonArr
     // configure relationship.
     Relationship* rel = new Relationship(toClass);
 
-    ClassAccessor*& toClassAccessor = csv::SchemaManager::getInstance()->getClassProxy(toClass);
+    ClassAccessor* const toClassAccessor = csv::SchemaManager::getInstance()->getClassProxy(toClass);
 
     rapidjson::Document::Array keyArray = obj[KeyJSON].GetArray();
     std::vector<rapidjson::Document::Object> keys;
@@ -132,37 +139,37 @@ void csv::IngestMapper::processRelationships(rapidjson::Document::Array& jsonArr
         std::string keySchemaName = keyObj[SchemaNameJSON].GetString();
         std::string keyRawName = keyObj[RawNameJSON].GetString();
         // get the type of the keySchemaName 
-        objy::data::Attribute attr = getAttribute(keySchemaName, toClassAccessor);
+        objy::data::Attribute attr = toClassAccessor->getAttribute(keySchemaName);
         csv::SingleKey* key = new csv::SingleKey(keySchemaName, keyRawName,
                 attr.attributeValueSpecification()->logicalType());
         singleKeys.push_back(key);
       }
-      csv::CompositeKey* compositeKey = new csv::CompositeKey(singleKeys);
-      rel->add(compositeKey, relationshipName, toClassRelationshipName, _className);
+      std::unique_ptr<csv::TargetKey> key(new csv::CompositeKey(singleKeys));
+      rel->add(std::move(key), relationshipName, toClassRelationshipName, _className);
     } else {
       rapidjson::Document::Object& keyObj = keys.at(0);
       std::string  keySchemaName = keyObj[SchemaNameJSON].GetString();
       std::string  keyRawName = keyObj[RawNameJSON].GetString();
       // get the type of the keySchemaName 
-      objy::data::Attribute attr = getAttribute(keySchemaName, toClassAccessor);
-      csv::SingleKey* key = new csv::SingleKey(keySchemaName, keyRawName,
-              attr.attributeValueSpecification()->logicalType());
-      rel->add(key, relationshipName, toClassRelationshipName, _className);
+      objy::data::Attribute attr = toClassAccessor->getAttribute(keySchemaName);
+      std::unique_ptr<csv::TargetKey> key(new csv::SingleKey(keySchemaName, keyRawName,
+              attr.attributeValueSpecification()->logicalType()));
+      rel->add(std::move(key), relationshipName, toClassRelationshipName, _className);
     }
     _relationshipList.push_back(rel);
   }
 
 }
 
-objy::data::Attribute csv::IngestMapper::getAttribute(const string& keySchemaName, 
-        ClassAccessor*& classAccessor) {
-  objy::data::Attribute attr = classAccessor->getAttribute(keySchemaName);
-  if (attr.isNull()) {
-    std::cerr << "Attribute: " << keySchemaName 
-              << " for Class: " << _className << " is null" << std::endl;
-  }
-  return attr;
-}
+//objy::data::Attribute csv::IngestMapper::getAttribute(const string& keySchemaName, 
+//        ClassAccessor* const classAccessor) {
+//  objy::data::Attribute attr = classAccessor->getAttribute(keySchemaName);
+//  if (attr.isNull()) {
+//    std::cerr << "Attribute: " << keySchemaName 
+//              << " for Class: " << _className << " is null" << std::endl;
+//  }
+//  return attr;
+//}
 
 csv::TargetList* csv::IngestMapper::getClassTargetList() {
   if (_classTargetList == nullptr) {

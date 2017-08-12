@@ -12,6 +12,7 @@
  */
 
 #include <iostream>
+#include <cassert>
 #include "IngestCSV.h"
 
 #include "utils/rapidjson/document.h"
@@ -54,11 +55,14 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
     // meta data information.
     std::string fileName = csvFile;
 
-    if (!fileName.empty() && !jsonMapper.Null()) {
+    bool val = fileName.empty();
+    if (!fileName.empty()) {
       if (jsonMapper.IsArray()) {
         for (auto& element : jsonMapper.GetArray())
         {
-          csv::IngestMapper mapper(element.GetObject());
+          csv::IngestMapper mapper;
+          
+          mapper.initialize(element.GetObject());
           int objCount = processFile(fileName, mapper);
           // for now we read and process the whole file before commiting, but we
           // might change that to iterate and commit as needed.
@@ -67,7 +71,10 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
                   << "' Ingest... Total Objects: " << objCount << std::endl;
         }
       } else {
-        IngestMapper mapper(jsonMapper.GetObject());
+        assert(jsonMapper.IsObject());
+        IngestMapper mapper;
+        
+        mapper.initialize(jsonMapper.GetObject());
         int objCount = processFile(fileName, mapper);
         // for now we read and process the whole file before commiting, but we
         // might change that to iterate and commit as needed.
@@ -79,6 +86,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
     }
 
     tx->commit();
+    tx->release();
     //long timeDiff = System.currentTimeMillis() - timeStart;
     //LOG.info("Time: {} sec", (timeDiff/1000.0));
   } catch (ooKernelException& ex) {

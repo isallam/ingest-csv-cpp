@@ -35,7 +35,7 @@ set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_CXX_FLAGS})
 link_directories(/opt/Objectivity/${OBJY_VERSION}/lib)
 
 SET(SYSTEM_LIBS crypto dl)
-SET(OBJYLIBS oo.${OBJY_VERSION} ooSessionManager.${OBJY_VERSION} ooConfiguration.${OBJY_VERSION} ooObjectModel.${OBJY_VERSION} ooData.${OBJY_VERSION} ooUtil.${OBJY_VERSION} ooError.${OBJY_VERSION} ooTool.${OBJY_VERSION})
+SET(OBJYLIBS oo.${OBJY_VERSION} ooSessionManager.${OBJY_VERSION} ooConfiguration.${OBJY_VERSION} ooObjectModel.${OBJY_VERSION} ooData.${OBJY_VERSION} ooUtil.${OBJY_VERSION} ooError.${OBJY_VERSION} ooTool.${OBJY_VERSION} ooTargetFinder.${OBJY_VERSION} ooPersistentDataStore.${OBJY_VERSION})
 
 add_executable(ingest_csv ${SOURCES} main.cpp)
 

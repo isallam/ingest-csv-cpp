@@ -11,20 +11,26 @@
  * Created on July 20, 2017, 12:31 PM
  */
 
+#include <iostream>
 #include "SchemaManager.h"
 #include "ClassAccessor.h"
 
-//csv::SchemaManager::_instance = nullptr;
+csv::SchemaManager* csv::SchemaManager::_instance = new csv::SchemaManager();
 
-csv::SchemaManager* csv::SchemaManager::getInstance() {
-  if (!csv::SchemaManager::_instance) {
-    csv::SchemaManager::_instance = new csv::SchemaManager();
-  }
-  return csv::SchemaManager::_instance;
-}
+
+//csv::SchemaManager* csv::SchemaManager::getInstance() {
+//  cout << "in getInstance()" << endl;
+//  if (!_instance) {
+//    cout << "creating instance of schema manager" << endl;
+//    _instance = new csv::SchemaManager();
+//  }
+//  cout << "returning instance" << endl;
+//  return _instance;
+//}
 
 csv::ClassAccessor*& csv::SchemaManager::getClassProxy(const string& className) {
 
+  cout << "in getClassProxy" << endl;
   auto itr = _classProxyMap.find(className);
   if (itr == _classProxyMap.end()) {
     csv::ClassAccessor* classAccessor = new csv::ClassAccessor(className);
@@ -32,6 +38,6 @@ csv::ClassAccessor*& csv::SchemaManager::getClassProxy(const string& className) 
     _classProxyMap[className] = classAccessor;
     return classAccessor;
   }
-
+  cout << "... returning class Accessor" << endl;
   return itr->second;
 }

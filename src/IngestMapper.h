@@ -53,14 +53,14 @@ namespace csv {
 
   class IngestMapper {
   public:
-    IngestMapper() = delete;
+    IngestMapper() = default;
     IngestMapper(const IngestMapper& orig) = delete;
     virtual ~IngestMapper() {
       delete _classKey;
       delete _classTargetList;
     }
 
-    IngestMapper(rapidjson::Document::Object json);
+    bool initialize(rapidjson::Document::Object json);
 
     const std::string& getClassName() const {
       return _className;
@@ -123,8 +123,8 @@ namespace csv {
             AttributeMapperMap& stringAttributeMap);
     void processClassKey(rapidjson::Document::Array& jsonArray);
     void processRelationships(rapidjson::Document::Array& jsonArray);
-    objy::data::Attribute getAttribute(const std::string& keySchemaName, 
-                                      csv::ClassAccessor*& classAccessor);
+//    objy::data::Attribute getAttribute(const std::string& keySchemaName, 
+//                                      csv::ClassAccessor* const classAccessor);
 
   };
 

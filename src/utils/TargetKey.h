@@ -25,6 +25,8 @@ namespace csv {
 
   class TargetKey {
   public:
+    TargetKey() = default;
+    virtual ~TargetKey() = default;
     virtual string toString() = 0;
     virtual string getCorrectValue(CSVRecord record) = 0;
     virtual string getAttrName() = 0;
