@@ -18,12 +18,20 @@ void csv::ClassAccessor::init() {
   cout << "locating class: " << _className.c_str() << endl;
   objy::data::Class clazz = objy::data::lookupClass(_className.c_str());
   cout << "... in init()...got: " << clazz.name() << endl;
-//  _classRef = clazz;
+  _classRef = clazz;
+  cout << "... numAttributes: " << _classRef.numberOfAttributes() << endl;
+  objy::data::Sequence seq = _classRef.attributes();
+  objy::data::Attribute geo = _classRef.lookupAttribute("geo_location");
+  //cout << ".... found: " << geo.name() << endl;
+  while (seq.next()) {
+//    auto attr = seq.current().get<objy::data::Attribute>();
+//    cout << "...... attrName: " << attr.name() << endl;
+  }
 //  for (int i = 0; i < _classRef.numberOfAttributes(); i++)
 //  {
 //    objy::data::Attribute attr = _classRef.attribute(i);
 //    //Attribute attr = classRef.lookupAttribute(attrName);
-//    _attributeMap[attr.name()] = attr;
+//    //_attributeMap[attr.name()] = attr;
 //  }
 }
 

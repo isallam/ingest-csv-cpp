@@ -15,7 +15,7 @@
 #include "SchemaManager.h"
 #include "ClassAccessor.h"
 
-csv::SchemaManager* csv::SchemaManager::_instance = new csv::SchemaManager();
+csv::SchemaManager* csv::SchemaManager::_instance = nullptr;
 
 
 //csv::SchemaManager* csv::SchemaManager::getInstance() {
@@ -28,7 +28,7 @@ csv::SchemaManager* csv::SchemaManager::_instance = new csv::SchemaManager();
 //  return _instance;
 //}
 
-csv::ClassAccessor*& csv::SchemaManager::getClassProxy(const string& className) {
+csv::ClassAccessor* csv::SchemaManager::getClassProxy(const string& className) {
 
   cout << "in getClassProxy" << endl;
   auto itr = _classProxyMap.find(className);

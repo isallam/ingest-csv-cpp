@@ -103,8 +103,7 @@ void csv::IngestMapper::processClassKey(rapidjson::Document::Array& jsonArray) {
     std::string keySchemaName = keyObj[SchemaNameJSON].GetString();
     std::string keyRawName = keyObj[RawNameJSON].GetString();
     // get the type of the keySchemaName 
-    auto blah = csv::SchemaManager::_instance; //csv::SchemaManager::getInstance();
-    auto classAccessor = blah->getClassProxy(_className);
+    auto classAccessor = csv::SchemaManager::getInstance()->getClassProxy(_className);
     objy::data::Attribute attr = classAccessor->getAttribute(keySchemaName);
     _classKey = new SingleKey(keySchemaName, keyRawName,
             attr.attributeValueSpecification()->logicalType());
@@ -125,7 +124,7 @@ void csv::IngestMapper::processRelationships(rapidjson::Document::Array& jsonArr
     // configure relationship.
     Relationship* rel = new Relationship(toClass);
 
-    ClassAccessor* const toClassAccessor = csv::SchemaManager::getInstance()->getClassProxy(toClass);
+    auto toClassAccessor = csv::SchemaManager::getInstance()->getClassProxy(toClass);
 
     rapidjson::Document::Array keyArray = obj[KeyJSON].GetArray();
     std::vector<rapidjson::Document::Object> keys;

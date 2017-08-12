@@ -87,7 +87,7 @@ public:
         .action("store")
         .type("string")
         .dest(MapperFilePath)
-        .set_default("/home/ibrahim/projects/ingest-csv-cpp/config/personMapper.json")
+        .set_default("/home/ibrahim/projects/ingest-csv-cpp/config/addressMapper.json")
         .help("full path to the JSON mapper file to aid the ingest process.");
     
     optparse::Values &values = optionParser.parse_args(argc, argv);

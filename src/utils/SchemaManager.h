@@ -38,15 +38,14 @@ namespace csv {
         _instance = new csv::SchemaManager();
       }
       cout << "returning instance" << endl;
-      return csv::SchemaManager::_instance;
+      return _instance;
       
     }
 
-    csv::ClassAccessor*& getClassProxy(const string& className);
-
-    static SchemaManager* _instance;
+    csv::ClassAccessor* getClassProxy(const string& className);
 
   private:
+    static SchemaManager* _instance;
     SchemaManager() {}
 
     ClassAccessorMap      _classProxyMap;
