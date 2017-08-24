@@ -53,11 +53,16 @@ namespace csv {
 
   class IngestMapper {
   public:
-    IngestMapper() = default;
+    IngestMapper() {
+			_classKey = nullptr;
+			_classTargetList = nullptr;	
+		}
     IngestMapper(const IngestMapper& orig) = delete;
     virtual ~IngestMapper() {
-      delete _classKey;
-      delete _classTargetList;
+			if (_classKey != nullptr)
+      	delete _classKey;
+			if (_classTargetList != nullptr)
+      	delete _classTargetList;
     }
 
     bool initialize(rapidjson::Document::Object json);

@@ -113,7 +113,7 @@ int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
     csv::CSVFormat* csvFormat = csv::CSVFormat::create(csv::FormatType::RFC4180);
     csvFormat->withFirstRecordAsHeader();
     csv::CSVParser csvParser(fileName, csvFormat);
-
+		cout << "getting records" << endl;
     records = csvParser.getRecords();
     bool doProcessForRelationships = mapper.hasRelationships();
     bool doProcessClassKeys = mapper.hasClassKey();
@@ -154,6 +154,8 @@ int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
       classProxy->createObject(record);
       objCount++;
     }
+	} catch (csv::error::base& error) {
+	  cerr << "CSV::Error: " << error.what() << endl;	
   } catch (...) {
     cerr << "Error processing CSVFile (1)." << endl;
   }

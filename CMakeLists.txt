@@ -20,7 +20,7 @@ ADD_DEFINITIONS(-DWANT_DENSE)
 ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS=1)
 #ADD_DEFINITIONS(-D_GLIBCXX_USE_CXX11_ABI=0)
 
-SET(OBJY_VERSION 12.4)
+SET(OBJY_VERSION 12.5)
 
 include_directories(. ./src /opt/Objectivity/${OBJY_VERSION}/include)
  
@@ -34,7 +34,7 @@ set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_CXX_FLAGS})
 #set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/Objectivity/12.4/lib)
 link_directories(/opt/Objectivity/${OBJY_VERSION}/lib)
 
-SET(SYSTEM_LIBS crypto dl)
+SET(SYSTEM_LIBS dl)
 SET(OBJYLIBS oo.${OBJY_VERSION} ooSessionManager.${OBJY_VERSION} ooConfiguration.${OBJY_VERSION} ooObjectModel.${OBJY_VERSION} ooData.${OBJY_VERSION} ooUtil.${OBJY_VERSION} ooError.${OBJY_VERSION} ooTool.${OBJY_VERSION} ooTargetFinder.${OBJY_VERSION} ooPersistentDataStore.${OBJY_VERSION})
 
 add_executable(ingest_csv ${SOURCES} main.cpp)

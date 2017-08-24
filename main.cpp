@@ -67,14 +67,14 @@ public:
         .action("store")
         .type("string")
         .dest(BootFilePath)
-        .set_default("/home/ibrahim/projects/ingest-csv-cpp/data/testfd.boot")
+        .set_default("/home/projects/ingest-csv-cpp/data/testfd.boot")
         .help("bootfile file path (default ./data/fdtest.boot)");
     optionParser
         .add_option("-f", "--csvFile")
         .action("store")
         .type("string")
         .dest(CSVFilePath)
-        .set_default("/home/ibrahim/projects/ingest-csv-cpp/source-data/people.csv")
+        .set_default("/home/projects/ingest-csv-cpp/source-data/people.csv")
         .help("full path to the csv file to ingest.");
     optionParser
         .add_option("-p", "--csvPathPattern")
@@ -87,7 +87,7 @@ public:
         .action("store")
         .type("string")
         .dest(MapperFilePath)
-        .set_default("/home/ibrahim/projects/ingest-csv-cpp/config/addressMapper.json")
+        .set_default("/home/projects/ingest-csv-cpp/config/addressMapper.json")
         .help("full path to the JSON mapper file to aid the ingest process.");
     
     optparse::Values &values = optionParser.parse_args(argc, argv);
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
   // TBD... boot file is hard coded for now, will be params later
   //processParams(args);
   fdname =  _params.bootFile;
-  ooObjy::setLoggingOptions(oocLogAll, true, false, "/home/ibrahim/projects/ingest-csv-cpp/logs");
+  ooObjy::setLoggingOptions(oocLogAll, true, false, "/home/projects/ingest-csv-cpp/logs");
   ooObjy::startup(24);
 
   objyconfig::ConfigurationManager* cfgMgr = objyconfig::ConfigurationManager::getInstance();

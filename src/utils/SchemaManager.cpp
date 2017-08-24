@@ -30,7 +30,6 @@ csv::SchemaManager* csv::SchemaManager::_instance = nullptr;
 
 csv::ClassAccessor* csv::SchemaManager::getClassProxy(const string& className) {
 
-  cout << "in getClassProxy" << endl;
   auto itr = _classProxyMap.find(className);
   if (itr == _classProxyMap.end()) {
     csv::ClassAccessor* classAccessor = new csv::ClassAccessor(className);
@@ -38,6 +37,5 @@ csv::ClassAccessor* csv::SchemaManager::getClassProxy(const string& className) {
     _classProxyMap[className] = classAccessor;
     return classAccessor;
   }
-  cout << "... returning class Accessor" << endl;
   return itr->second;
 }

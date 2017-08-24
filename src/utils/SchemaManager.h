@@ -32,14 +32,10 @@ namespace csv {
     virtual ~SchemaManager() {}
 
     static csv::SchemaManager* getInstance() {
-      cout << "in getInstance()" << endl;
       if (!_instance) {
-        cout << "creating instance of schema manager" << endl;
         _instance = new csv::SchemaManager();
       }
-      cout << "returning instance" << endl;
       return _instance;
-      
     }
 
     csv::ClassAccessor* getClassProxy(const string& className);
