@@ -56,7 +56,7 @@ namespace csv {
       _targetKeys.push_back(targetKey);
     }
 
-    void collectTargetInfo(CSVRecord record);
+    void collectTargetInfo(CSVRecord& record);
     objy::data::Object getTargetObject(const csv::CSVRecord& record, TargetKey* key);
     void fetchTargets();
     int createMissingTargets();
@@ -70,15 +70,8 @@ namespace csv {
     const csv::ClassAccessor* _targetClass;
     vector<TargetKey*> _targetKeys;
 
-    void addToTargetInfoMap(CSVRecord record, TargetKey* key) {
-      throw std::invalid_argument("calling the default addToTargetInfoMap()");
-    }
+    void addToTargetInfoMap(CSVRecord& record, TargetKey* key);
     
-    void addToTargetInfoMap(CSVRecord record,
-            SingleKey* key);
-    void addToTargetInfoMap(CSVRecord record,
-            CompositeKey* key);
-
     void addToTargetInfoMap(const vector<Property>& nameValues);
 
     objy::data::Object getTargetObjectForKey(csv::CSVRecord record,

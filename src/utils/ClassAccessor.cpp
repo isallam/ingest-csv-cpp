@@ -219,7 +219,7 @@ bool csv::ClassAccessor::doesListContainReference(const objy::data::List& list,
         const objy::data::Object& value) const {
   objy::data::Variable var;
   objy::uint_64 valueOid = value.identifier().get<objy::uint_64>();
-  for (int i = 0; i < list.size(); i++) {
+  for (auto i = 0; i < list.size(); i++) {
     list.elementAt(i, var);
     objy::uint_64 refOid = var.get<objy::data::Reference>().identifier().get<objy::uint_64>();
     if (refOid == valueOid) {

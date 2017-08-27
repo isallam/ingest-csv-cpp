@@ -1,5 +1,5 @@
 {
-	"ClassName": "Person",
+  "ClassName": "Person",
   "ClassKey" : [
      {"SchemaName": "id", "RawName": "index" }
           ],

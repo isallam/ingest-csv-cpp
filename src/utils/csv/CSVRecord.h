@@ -60,7 +60,12 @@ namespace csv {
       try {
         index = _mapping->at(name);
       } catch (std::out_of_range& ex) {
-        cerr << "Mapping for '" << name << "' not found, expected one of...  (TBD: display possible keys)" << endl;
+        cerr << "Mapping for '" << name << "' not found, expected one of: \n\t";
+        for (auto pair = _mapping->begin(); pair != _mapping->end(); ++pair)
+        {
+            cerr << "'" << pair->first << "', ";
+        }
+        cerr << endl;
         throw ex;
       }
       return get(index);

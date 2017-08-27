@@ -49,9 +49,9 @@ namespace csv {
 
     ClassAccessor(ClassAccessor&& other) :
       _className(std::move(other._className)), 
+      _mapper(other._mapper),
       _classRef(std::move(other._classRef)),
-      _attributeMap(std::move(other._attributeMap)),
-      _mapper(other._mapper)
+      _attributeMap(std::move(other._attributeMap))
     {
       other._mapper = nullptr;
     }
@@ -98,10 +98,10 @@ namespace csv {
 
   private:
 
-    objy::data::Class _classRef;
     string            _className;
-    AttributeMap      _attributeMap;
     IngestMapper*     _mapper;
+    objy::data::Class _classRef;
+    AttributeMap      _attributeMap;
 
   };
 }

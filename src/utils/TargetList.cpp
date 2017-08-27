@@ -16,7 +16,7 @@
 
 #include <objy/target_finder/TargetFinder.h>
  
-void csv::TargetList::collectTargetInfo(CSVRecord record) {
+void csv::TargetList::collectTargetInfo(CSVRecord& record) {
   for (auto key : _targetKeys) {
     //System.out.println(" >> in collectTargetInfo() - key:" + key);
 //    try {
@@ -29,24 +29,9 @@ void csv::TargetList::collectTargetInfo(CSVRecord record) {
   }
 }
 
-void csv::TargetList::addToTargetInfoMap(CSVRecord record,
-        CompositeKey* key) {
-  vector<SingleKey*> keywords = key->keys();
-  vector<Property> nameValues;
-  for (int i = 0; i < keywords.size(); i++) {
-    nameValues.push_back(Property(
-            keywords[i]->getAttrName(),
-            keywords[i]->getCorrectValue(record)));
-  }
-  addToTargetInfoMap(nameValues);
-}
-
-void csv::TargetList::addToTargetInfoMap(CSVRecord record,
-        SingleKey* key) {
-  vector<Property> nameValues;
-    nameValues.push_back(Property(
-            key->getAttrName(),
-            key->getCorrectValue(record)));
+void csv::TargetList::addToTargetInfoMap(CSVRecord& record,
+        TargetKey* key) {
+  vector<Property> nameValues = key->getProperties(record);
   addToTargetInfoMap(nameValues);
 }
 

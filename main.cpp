@@ -74,7 +74,7 @@ public:
         .action("store")
         .type("string")
         .dest(CSVFilePath)
-        .set_default("/home/projects/ingest-csv-cpp/source-data/people.csv")
+        .set_default("/home/projects/ingest-csv-cpp/source-data/addresses.csv")
         .help("full path to the csv file to ingest.");
     optionParser
         .add_option("-p", "--csvPathPattern")

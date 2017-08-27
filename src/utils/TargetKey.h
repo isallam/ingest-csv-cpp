@@ -18,6 +18,7 @@
 #include <vector>
 #include <objy/data/Data.h>
 #include "csv/CSVRecord.h"
+#include "Property.h"
 
 using namespace std;
 
@@ -28,7 +29,8 @@ namespace csv {
     TargetKey() = default;
     virtual ~TargetKey() = default;
     virtual string toString() = 0;
-    virtual string getCorrectValue(CSVRecord record) = 0;
+    virtual string getCorrectValue(CSVRecord& record) = 0;
+    virtual vector<Property> getProperties(CSVRecord& record) = 0;
     virtual string getAttrName() = 0;
     virtual string getRawFileAttrName() = 0;
   };
@@ -68,7 +70,7 @@ namespace csv {
       return retString;
     }
 
-    string getCorrectValue(CSVRecord record) {
+    string getCorrectValue(CSVRecord& record) {
       //    if (logicalType == LogicalType.INTEGER) {
       //      long attrValue = 0;
       //      string attrValueStr = record.get(rawFileAttrName);
@@ -85,6 +87,14 @@ namespace csv {
       //    }
       //    else 
       return record.get(_rawFileAttrName);
+    }
+    
+    vector<Property> getProperties(CSVRecord& record) {
+        vector<Property> nameValues;
+          nameValues.push_back(Property(
+                  getAttrName(),
+                  getCorrectValue(record)));
+          return nameValues;
     }
 
     string getAttrName() {
@@ -133,12 +143,22 @@ namespace csv {
       return strBuffer;
     }
 
-    virtual string getCorrectValue(CSVRecord record) {
+    virtual string getCorrectValue(CSVRecord& record) {
       string value = "";
       for (SingleKey* aKey : _keys) {
         value += aKey->getCorrectValue(record);
       }
       return value;
+    }
+    
+    vector<Property> getProperties(CSVRecord& record) {
+        vector<Property> nameValues;
+        for (unsigned int i = 0; i < _keys.size(); i++) {
+          nameValues.push_back(Property(
+                  _keys[i]->getAttrName(),
+                  _keys[i]->getCorrectValue(record)));
+        }
+        return nameValues;
     }
 
     string getAttrName() {

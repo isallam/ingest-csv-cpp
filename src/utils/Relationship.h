@@ -131,9 +131,9 @@ namespace csv {
     }
 
   private:
-    bool _isToOne;
-    csv::TargetList* _targetList;
-    std::string _toClassName;
+    std::string                  _toClassName;
+    bool                         _isToOne;
+    csv::TargetList*             _targetList;
     vector<csv::RelationshipRef> _relationshipRefList;
 
     vector<TargetKey*> getKeys() {
