@@ -117,17 +117,18 @@ void csv::TargetList::fetchTargets() {
 
 int csv::TargetList::createMissingTargets() {
   int count = 0;
-  throw std::logic_error("finish createMissingTargets() impl");
+  //throw std::logic_error("finish createMissingTargets() impl");
   // iterate over the objectTargets and create data as needed.
-//  for (auto itr = _targetInfoMap.begin(); itr != _targetInfoMap.end(); itr++)
-//  {
-//    TargetInfo* targetInfo = itr->second;
-//    if (targetInfo->_targetObject.get() == NULL) {
-//      // create the ID object
-//      objy::data::Object idInstance = _targetClass.createObject(targetInfo->_nameValues);
-//      targetInfo->_targetObject.setInstance(idInstance);
-//      count++;
-//    }
-//  }
+  for (auto pair: _targetInfoMap)
+  {
+    auto targetInfo = pair.second;
+    if (!targetInfo->_targetObject->reference()) {
+      // create the object
+      //cout << "creating object : " << count << endl;
+      objy::data::Object idInstance = _targetClass->createObject(targetInfo->_nameValues);
+      targetInfo->_targetObject->setReference(idInstance);
+      count++;
+    }
+  }
   return count;
 }

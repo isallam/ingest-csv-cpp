@@ -87,7 +87,10 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
 objy::data::Object csv::ClassAccessor::createObject(const vector<Property>& properties) const {
   objy::data::Object&& instance = createInstance();
   for (Property property : properties) {
-    setAttributeValue(instance, property.getName(), property.getValue().c_str());
+    objy::data::Variable var;
+    const objy::data::Attribute& attr = this->getAttribute(property.getName());
+    if (this->getValue(attr, var, property.getValue()))
+      setAttributeValue(instance, attr, var);
   }
   return instance;
 }
