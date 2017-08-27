@@ -98,18 +98,19 @@ void csv::TargetList::fetchTargets() {
   objy::data::Class objyClass = _targetClass->getObjyClass();
   objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
   
-  throw std::logic_error("finish fetchTargets() impl");
-  
-//  for (TargetInfo* targetInfo : _targetInfoMap) {
-//     targetKeyBuilder = new ObjectTargetKeyBuilder(objyClass);
-//    for (Property keyValuePair : targetInfo->_nameValues) {
-//      //        System.out.println("Add to targetKeyBuilder: " + keyValuePair.attrName +
-//      //                ", val: " + keyValuePair.attrValue);
-//      targetKeyBuilder.add(keyValuePair.getName(), objy::data::Variable(keyValuePair.getValue()));
-//    }
-//    targetKey = targetKeyBuilder.build();
-//    targetInfo->_targetObject = targetFinder.getObjectTarget(targetKey);
-//  }
+  for (auto pair : _targetInfoMap) {
+    auto targetInfo = pair.second;
+    for (auto keyValuePair : targetInfo->_nameValues) {
+    //        cout << "Add to targetKeyBuilder: " << keyValuePair.attrName 
+    //             << ", val: " << keyValuePair.attrValue) << endl;
+      const objy::data::Attribute& attr = _targetClass->getAttribute(keyValuePair.getName());
+      objy::data::Variable var;
+      if (_targetClass->getValue(attr, var, keyValuePair.getValue()))
+        targetKeyBuilder.add(const_cast<objy::data::Attribute&>(attr), var); 
+    }
+    targetKey = targetKeyBuilder.build();
+    targetInfo->_targetObject = targetFinder.getObjectTarget(targetKey);
+  }
   targetFinder.resolveTargets();
 }
 

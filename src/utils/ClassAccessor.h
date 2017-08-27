@@ -57,7 +57,7 @@ namespace csv {
     }
 
     void init();
-    objy::data::Attribute getAttribute(const string& attrName) const;
+    const objy::data::Attribute& getAttribute(const string& attrName) const;
 
     void setMapper(csv::IngestMapper* ingestMapper) {
       _mapper = ingestMapper;
@@ -87,6 +87,9 @@ namespace csv {
     void addReference(objy::data::Object& instance,
             const string& attributeName, const objy::data::Object& value) const;
 
+    bool getValue(const objy::data::Attribute& attr, objy::data::Variable& var, 
+            std::string value) const;
+    
   private:
     void setAttributeValue(objy::data::Object& instance,
             const objy::data::Attribute& attribute, const objy::data::Variable& value) const;

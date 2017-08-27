@@ -43,7 +43,7 @@ namespace csv {
     std::string getValue() const {
       return _attrValue;
     }
-
+    
   };
 }
 #endif /* PROPERTY_H */
