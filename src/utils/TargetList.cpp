@@ -98,21 +98,29 @@ void csv::TargetList::fetchTargets() {
   objy::data::Class objyClass = _targetClass->getObjyClass();
   //cout << "working with objyClass: " << objyClass.name() << endl; 
   
-  for (auto pair : _targetInfoMap) {
-    auto targetInfo = pair.second;
-  	objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
-    for (auto keyValuePair : targetInfo->_nameValues) {
-    //        cout << "Add to targetKeyBuilder: " << keyValuePair.attrName 
-    //             << ", val: " << keyValuePair.attrValue) << endl;
-      const objy::data::Attribute& attr = _targetClass->getAttribute(keyValuePair.getName());
-      objy::data::Variable var;
-      if (_targetClass->getValue(attr, var, keyValuePair.getValue()))
-        targetKeyBuilder.add(keyValuePair.getName().c_str(), var); 
+  try {
+    for (auto pair : _targetInfoMap) {
+      auto targetInfo = pair.second;
+      objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
+      for (auto keyValuePair : targetInfo->_nameValues) {
+      //        cout << "Add to targetKeyBuilder: " << keyValuePair.attrName 
+      //             << ", val: " << keyValuePair.attrValue) << endl;
+        const objy::data::Attribute& attr = _targetClass->getAttribute(keyValuePair.getName());
+        objy::data::Variable var;
+        if (_targetClass->getValue(attr, var, keyValuePair.getValue()))
+        {
+            targetKeyBuilder.add(keyValuePair.getName().c_str(), var); 
+        }
+      }
+      
+      targetKey = targetKeyBuilder.build();
+      targetInfo->_targetObject = targetFinder.getObjectTarget(targetKey);
     }
-    targetKey = targetKeyBuilder.build();
-    targetInfo->_targetObject = targetFinder.getObjectTarget(targetKey);
+    targetFinder.resolveTargets();
+  } catch (std::exception& ex) {
+    cerr << "csv::TargetList::fetchTargets() Exception: " << ex.what() << endl;
+    throw ex;
   }
-  targetFinder.resolveTargets();
 }
 
 int csv::TargetList::createMissingTargets() {

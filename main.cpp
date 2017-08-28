@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <glob.h>  // once we move to c++17 we will use <filesystem> instead
 
 #include <ooObjy.h>
 #include <objy/Configuration.h>
@@ -25,8 +26,6 @@
 #include <objy/db/Connection.h>
 #include <objy/db/Transaction.h>
 #include <objy/db/TransactionScope.h>
-//#include <objy/data/Data.h>
-#include <objy/data/List.h>
 #include "IngestCSV.h"
 #include "src/utils/option.h"
 
@@ -161,22 +160,33 @@ int main(int argc, char** argv) {
       cout << "Processing file: " << _params.csvFile << endl;
       ingester.ingest(_params.csvFile, _params.mapperFile, _params.commitEvery);
     } else {
-      cout << "Processing files: " << _params.csvPathPattern << endl;
-      cout << "... TBD... " << endl;
-      //      Paths paths = new Paths();
-      //      Paths results = paths.glob(null, _params.csvFiles);
-      //      System.out.println("found: " + results.count());
+      cout << "Processing file pattern: " << _params.csvPathPattern << endl;
+      
+      /** The following is only supported on Linux, we'll change it to use c++17
+          <filesystem> once moved to new compiler that support such functionality
+       */
+      vector<string> fileList;
 
-      //      int count = 1;
-      //      int totalCount = paths.getPaths().size();
-      //      for(String csvFile : paths.getPaths())
-      //      {
-      //        LOG.info("Processing File: {}", csvFile);
-      //        ingester.ingest(csvFile, _params.mapperFile, _params.commitEvery);
-      //        LOG.info("Processed {} of {}", count, totalCount);
-      //        count++;
-      //      }
-    }
+      glob_t globbuf;
+      globbuf.gl_offs = 0;
+      
+      glob(_params.csvPathPattern.c_str(), GLOB_DOOFFS, NULL, &globbuf);
+      for (auto i = 0; i < globbuf.gl_pathc; i++) {
+        //cout << i << ") found: " << globbuf.gl_pathv[i] << endl;
+        fileList.push_back(string(globbuf.gl_pathv[i]));
+      }
+      globfree(&globbuf);
+
+      int count = 1;
+      int totalCount = fileList.size();
+      for(string csvFile : fileList)
+      {
+        cout << "Processing File: " << csvFile << endl;
+        ingester.ingest(csvFile, _params.mapperFile, _params.commitEvery);
+        cout << "Processed " << count << " of " << totalCount << endl;
+        count++;
+      }
+     }
 
   } catch (ooKernelException& e) {
     cout << e.what() << endl;

@@ -317,7 +317,7 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
     }
     case objy::data::LogicalType::String:
     {
-      objy::uint_16 encoding = attr.specification()->encoding();
+      objy::uint_16 encoding = attr.attributeValueSpecification()->encoding();
 
       objy::data::Utf8String utf8 = objy::data::createUtf8String();
       utf8.set(value.c_str());
@@ -342,6 +342,12 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
         {
           var.set<objy::data::Utf32String>(objy::data::convertToUtf32String(utf8));
           break;
+        }
+        case objy::data::StringEncoding::Unspecified:
+        {
+          string errString("Unspecified encoding for attribute: ");
+          errString.append(attr.name()).append(" in class: ").append(this->_className);
+          throw std::domain_error(errString);
         }
       }
       break;

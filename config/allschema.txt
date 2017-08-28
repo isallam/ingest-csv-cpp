@@ -3,10 +3,10 @@ UPDATE SCHEMA
 	CREATE CLASS Address 
 	{
 			id:            Integer {Encoding: Unsigned}, 
-			street_number: String,
-      street_name:   String,
-			city:          String,
-			state:         String,
+			street_number: String {Encoding: Utf8},
+      street_name:   String {Encoding: Utf8},
+			city:          String {Encoding: Utf8},
+			state:         String {Encoding: Utf8},
 			zip:           Integer {Encoding: Unsigned},
 			geo_location:  Reference {Referenced: Location},
       owner:         Reference {Referenced: Person}
@@ -15,11 +15,11 @@ UPDATE SCHEMA
 	CREATE CLASS Person
 	{
 			id:            Integer {Encoding: Unsigned},
-			first_name:    String,
-			middle_name:   String,
-			last_name:     String,
+			first_name:    String {Encoding: Utf8},
+			middle_name:   String {Encoding: Utf8},
+			last_name:     String {Encoding: Utf8},
 			date_of_birth: Date,
-			sex:           String,
+			sex:           String {Encoding: Utf8},
 			lives_at:      Reference {Referenced: Address},
 			owns:          Map {Element: Reference{Referenced: Phone}, Key: String, CollectionName: ooMap}
 	}
@@ -27,15 +27,15 @@ UPDATE SCHEMA
 	CREATE CLASS Phone
 	{
 			id:            Integer {Encoding: Unsigned},
-			phone_number:  String,
+			phone_number:  String {Encoding: utf8},
 			owner:         Reference {Referenced: Person},
 			calls:         Map {Element: Reference{Referenced: PhoneCall}, Key: String, CollectionName: ooMap}
 	}
 
 	CREATE CLASS PhoneCall
 	{
-			from_number:   String,
-			to_number:     String,
+			from_number:   String {Encoding: Utf8},
+			to_number:     String {Encoding: Utf8},
 			call_time:     DateTime,
 			call_duration: Integer {Encoding: Unsigned},
 			from_phone:    Reference{Referenced: Phone},
