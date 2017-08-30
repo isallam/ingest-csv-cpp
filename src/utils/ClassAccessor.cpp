@@ -12,12 +12,74 @@
  */
 #include <algorithm>
 #include <string>
+#include <locale>
+#include <sstream>
+#include <iterator>
 
 #include "ClassAccessor.h"
 #include "IngestMapper.h"
 
 using namespace std;
 
+
+/*******************************************/
+/** Some utilities for data and data/time **/
+/*******************************************/
+bool get_date(const std::string& s, std::tm& t /* out */)
+{
+  bool retValue = true;
+  
+//    std::cout << "Parsing the date out of '" << s <<
+//                 "' in the locale " << std::locale().name() << endl;
+  std::istringstream str(s);
+  std::ios_base::iostate err = std::ios_base::goodbit;
+
+  std::istreambuf_iterator<char> ret =
+      std::use_facet<std::time_get<char>>(str.getloc()).get_date(
+          std::istreambuf_iterator<char>(str),
+          std::istreambuf_iterator<char>(),
+          str, err, &t
+      );
+  str.setstate(err);
+  if(!str) {
+      std::cout << "Date parse failed. Unparsed string: ";
+      std::copy(ret, std::istreambuf_iterator<char>(),
+                std::ostreambuf_iterator<char>(std::cout));
+      std::cout << " in the local " << std::locale().name() << endl; 
+      retValue = false;
+  }
+  return retValue;
+}
+
+bool get_time(const std::string& s, std::tm& t /* out */)
+{
+  bool retValue = true;
+    std::cout << "Parsing the time out of '" << s <<
+                 "' in the locale " << std::locale().name() << '\n';
+    std::istringstream str(s);
+    std::ios_base::iostate err = std::ios_base::goodbit;
+ 
+    std::istreambuf_iterator<char> ret =
+        std::use_facet<std::time_get<char>>(str.getloc()).get_time(
+            std::istreambuf_iterator<char>(str),
+            std::istreambuf_iterator<char>(),
+            str, err, &t
+        );
+    str.setstate(err);
+    if(!str) {
+        std::cout << "Parse failed. Unparsed string: ";
+        std::copy(ret, std::istreambuf_iterator<char>(),
+                  std::ostreambuf_iterator<char>(std::cout));
+        std::cout << " in the local " << std::locale().name() << endl; 
+        retValue = false;
+    }
+  return retValue;
+}
+
+
+/**
+ * 
+ */
 void csv::ClassAccessor::init() {
   //cout << "locating class: " << _className.c_str() << endl;
   objy::data::Class clazz = objy::data::lookupClass(_className.c_str());
@@ -31,6 +93,11 @@ void csv::ClassAccessor::init() {
   }
 }
 
+/**
+ * 
+ * @param attrName
+ * @return attribute reference
+ */
 const objy::data::Attribute& csv::ClassAccessor::getAttribute(const string& attrName) const {
   AttributeMap::const_iterator itr = _attributeMap.find(attrName);
   if (itr == _attributeMap.end()) {
@@ -42,6 +109,11 @@ const objy::data::Attribute& csv::ClassAccessor::getAttribute(const string& attr
   return itr->second;
 }
 
+/**
+ * 
+ * @param record
+ * @return created object
+ */
 objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) const {
 
   objy::data::Object instance;
@@ -95,66 +167,94 @@ objy::data::Object csv::ClassAccessor::createObject(const vector<Property>& prop
   return instance;
 }
 
+/**
+ * 
+ * @param instance
+ * @param record
+ */
 void csv::ClassAccessor::setAttributes(
         objy::data::Object& instance, const csv::CSVRecord& record) const {
 
-  string attrValueStr;
-  AttributeMapperMap::const_iterator itr;
+//  string attrValueStr;
+//  AttributeMapperMap::const_iterator itr;
 
   // iterate and create any Integer attribute
-  const AttributeMapperMap& intMap = _mapper->getIntegersMap();
-  itr = intMap.begin();
-
-  while (itr != intMap.end()) {
-    try {
-      long attrValue = 0;
-      attrValueStr = record.get(itr->second);
-      if (!attrValueStr.empty())
-        attrValue = std::stol(attrValueStr);
-      setAttributeValue(instance, itr->first, attrValue);
-      itr++;
-    } catch (std::invalid_argument& invalidEx) {
-      cerr << "Invalid value for integer conversion: " << attrValueStr << endl;
-      throw invalidEx;
-    } catch (std::out_of_range& outEx) {
-      cerr << "Invalid value for integer conversion: " << attrValueStr << endl;
-      throw outEx;
-    }
-  }
-
-  // iterate and create any Real atttribute
-  const AttributeMapperMap& floatMap = _mapper->getFloatMap();
-  itr = floatMap.begin();
-
-  while (itr != floatMap.end()) {
-    try {
-      double attrValue = 0;
-      attrValueStr = record.get(itr->second);
-      if (!attrValueStr.empty())
-        attrValue = std::stod(attrValueStr);
-      setAttributeValue(instance, itr->first, attrValue);
-      itr++;
-    } catch (std::invalid_argument& invalidEx) {
-      cerr << "Invalid value for float conversion: " << attrValueStr << endl;
-      throw invalidEx;
-    } catch (std::out_of_range& outEx) {
-      cerr << "Invalid value for float conversion: " << attrValueStr << endl;
-      throw outEx;
-    }
-
-  }
-
-  // iterate and create any string attribute
-  const AttributeMapperMap& strMap = _mapper->getStringsMap();
-  itr = strMap.begin();
-
-  while (itr != strMap.end()) {
-    setAttributeValue(instance, itr->first, record.get(itr->second).c_str());
+  const AttributeMapperMap& attrMap = _mapper->getAttributeMap();
+  auto itr = attrMap.begin();
+  while (itr != attrMap.end()) {
+    setAttribute(instance, itr->second, record.get(itr->first));
     itr++;
   }
 
+//  while (itr != intMap.end()) {
+//    try {
+//      long attrValue = 0;
+//      attrValueStr = record.get(itr->second);
+//      if (!attrValueStr.empty())
+//        attrValue = std::stol(attrValueStr);
+//      setAttributeValue(instance, itr->first, attrValue);
+//      itr++;
+//    } catch (std::invalid_argument& invalidEx) {
+//      cerr << "Invalid value for integer conversion: " << attrValueStr << endl;
+//      throw invalidEx;
+//    } catch (std::out_of_range& outEx) {
+//      cerr << "Invalid value for integer conversion: " << attrValueStr << endl;
+//      throw outEx;
+//    }
+//  }
+
+  // iterate and create any Real atttribute
+//  const AttributeMapperMap& floatMap = _mapper->getFloatMap();
+//  itr = floatMap.begin();
+//
+//  while (itr != floatMap.end()) {
+//    try {
+//      double attrValue = 0;
+//      attrValueStr = record.get(itr->second);
+//      if (!attrValueStr.empty())
+//        attrValue = std::stod(attrValueStr);
+//      setAttributeValue(instance, itr->first, attrValue);
+//      itr++;
+//    } catch (std::invalid_argument& invalidEx) {
+//      cerr << "Invalid value for float conversion: " << attrValueStr << endl;
+//      throw invalidEx;
+//    } catch (std::out_of_range& outEx) {
+//      cerr << "Invalid value for float conversion: " << attrValueStr << endl;
+//      throw outEx;
+//    }
+//
+//  }
+
+  // iterate and create any string attribute
+//  const AttributeMapperMap& strMap = _mapper->getStringsMap();
+//  itr = strMap.begin();
+//
+//  while (itr != strMap.end()) {
+//    setAttributeValue(instance, itr->first, record.get(itr->second).c_str());
+//    itr++;
+//  }
+
 }
 
+/**
+ * 
+ * @param instance
+ * @param attribute
+ * @param value
+ */
+void csv::ClassAccessor::setAttribute(objy::data::Object& instance,
+        const objy::data::Attribute& attribute, string value) const {
+  objy::data::Variable varValue;
+  if (this->getValue(attribute, varValue, value))
+    setAttributeValue(instance, attribute, varValue);
+}
+
+/**
+ * 
+ * @param instance
+ * @param attribute
+ * @param value
+ */
 void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance,
         const objy::data::Attribute& attribute, const objy::data::Variable& value) const {
   objy::data::Variable varValue;
@@ -279,9 +379,13 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
       } catch (std::invalid_argument& ex) {
         cerr << "invalid conversion to Integer: " << ex.what() << endl;
         retValue = false;
+      } catch (std::out_of_range& oorEx) {
+        cerr << "Invalid value for integer conversion: " << value << endl;
+        cerr << oorEx.what() << endl;
+        retValue = false;
       }
-     }
-      break;
+    }
+    break;
    case objy::data::LogicalType::Real:
     {
       try {
@@ -290,9 +394,13 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
       } catch (std::invalid_argument& ex) {
         cerr << "invalid conversion to Real: " << ex.what() << endl;
         retValue = false;
+      } catch (std::out_of_range& oorEx) {
+        cerr << "Invalid value for real conversion: " << value << endl;
+        cerr << oorEx.what() << endl;
+        retValue = false;
       }
     }
-      break;
+    break;
     case objy::data::LogicalType::Boolean:
     {
       string bValue;
@@ -352,11 +460,51 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
       }
       break;
     }
+  case objy::data::LogicalType::Date:
+    { 
+      std::tm t;
+      if (get_date(value, t))
+      {
+        objy::data::Date date(t.tm_year, t.tm_mon, t.tm_mday);
+        var.set<objy::data::Date>(date);
+      }
+      break;
+    }
+  case objy::data::LogicalType::DateTime:
+    {
+      string errString("LogicalType::DateTime is not supported...");
+      throw std::invalid_argument(errString);
+//      DateTime datetime;
+//      if (kind == objy::data::DateTimeKind::Offset)
+//      {
+//        objy::int_64 offsetTicks;
+// 
+//        datetime = DateTime(ticks, offsetTicks);
+//      }
+//      else
+//      {
+//        datetime = DateTime(ticks, static_cast<objy::data::DateTimeKind::type>(kind));
+//      }
+//
+//      var.set<DateTime>(datetime);
+      break;
+    }
+    case objy::data::LogicalType::Time:
+    {
+      std::tm t;
+      if (get_time(value, t))
+      {
+        //Time(int hour, int minute, int second, int millisecond = 0, int microsecond = 0);
+        objy::data::Time timeVal(t.tm_hour, t.tm_min, t.tm_sec);
+        var.set<objy::data::Time>(timeVal);
+      }
+      break;
+    }
     default:
     {
-      cerr << "For attr: " << attr.name()
-              << " invalid logical type conversion for record with value: " << value
-              << endl;
+      cerr << "Invalid logical type conversion for attribute: '" << attr.name()
+              << "' when processing record with value: '" << value
+              << "'" << endl;
       retValue = false;
       break;
     }

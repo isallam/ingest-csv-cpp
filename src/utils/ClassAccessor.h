@@ -80,6 +80,9 @@ namespace csv {
     objy::data::Object createObject(const vector<Property>& properties) const;
     void setAttributes(objy::data::Object& instance, 
             const csv::CSVRecord& record) const;
+    void setAttribute(objy::data::Object& instance,
+            const objy::data::Attribute& attribute, string value) const;
+    
     void setAttributeValue(objy::data::Object& instance,
             const string& attributeName, const objy::data::Variable& value) const;
     void setReference(objy::data::Object& instance,

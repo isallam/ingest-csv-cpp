@@ -27,7 +27,7 @@ namespace csv {
     void ingest(std::string csvFile, std::string mapperFile, int commitEvery);
   private:
     void checkpoint(objy::db::Transaction* const tx);
-    int processFile(std::string fileName, csv::IngestMapper& mapper);
+    int processRawData(std::string fileName, csv::IngestMapper& mapper);
   };
 }
 #endif /* INGESTCSV_H */

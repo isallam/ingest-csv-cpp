@@ -35,6 +35,12 @@ csv::IngestCSV::IngestCSV(const IngestCSV& orig) {
 csv::IngestCSV::~IngestCSV() {
 }
 
+/**
+ * 
+ * @param csvFile
+ * @param mapperFile
+ * @param commitEvery
+ */
 void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int commitEvery) {
   rapidjson::Document jsonMapper;
   // read the mapper file as JSON and convert it to a Mapper object
@@ -45,7 +51,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
     jsonMapper.ParseStream(is);
     fclose(fp);
   } else {
-    std::cerr << "Error opening file: " << mapperFile << std::endl;
+    std::cerr << "Error opening mapper file: " << mapperFile << std::endl;
 		return;
   }
 
@@ -64,11 +70,12 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
           csv::IngestMapper mapper;
           
           mapper.initialize(element.GetObject());
-          int objCount = processFile(fileName, mapper);
+          
+          int objCount = processRawData(fileName, mapper);
           // for now we read and process the whole file before commiting, but we
           // might change that to iterate and commit as needed.
           checkpoint(tx);
-          std::cout << "Done '" << fileName
+          std::cout << "Processed '" << fileName
                   << "' Ingest... Total Objects: " << objCount << std::endl;
         }
       } else {
@@ -76,11 +83,12 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
         IngestMapper mapper;
         
         mapper.initialize(jsonMapper.GetObject());
-        int objCount = processFile(fileName, mapper);
+ 
+        int objCount = processRawData(fileName, mapper);
         // for now we read and process the whole file before commiting, but we
         // might change that to iterate and commit as needed.
         checkpoint(tx);
-        std::cout << "Done '" << fileName
+        std::cout << "Processed '" << fileName
                 << "' Ingest... Total Objects: " << objCount << std::endl;
 
       }
@@ -100,11 +108,9 @@ void csv::IngestCSV::checkpoint(objy::db::Transaction* const tx) {
   tx->start(objy::db::OpenMode::Update);
 }
 
-int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
+int csv::IngestCSV::processRawData(std::string fileName, IngestMapper& mapper) {
   //LOG.info("Starting Ingest for: {}: ", fileName);
 
-  auto classProxy = csv::SchemaManager::getInstance()->getClassProxy(mapper.getClassName());
-  classProxy->setMapper(&mapper);
   vector<csv::CSVRecord> records;
 
   int objCount = 0;
@@ -153,7 +159,7 @@ int csv::IngestCSV::processFile(std::string fileName, IngestMapper& mapper) {
     std::cout << "Phase 2: update newly created objects and connect related objects." << std::endl;
     records = csvParser.getRecords();
     for (csv::CSVRecord record : records) {
-      classProxy->createObject(record);
+      mapper.getClassProxy()->createObject(record);
       objCount++;
     }
   } catch (csv::error::base& error) {

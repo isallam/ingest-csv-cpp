@@ -23,32 +23,43 @@ using namespace csv::ingester;
 bool csv::IngestMapper::initialize(rapidjson::Document::Object json) {
   // construct needed information for processing data from the jsonObject
   _className = json[ClassNameJSON].GetString();
+  _classProxy = csv::SchemaManager::getInstance()->getClassProxy(_className);
+  _classProxy->setMapper(this);
+  
 
   if (json.HasMember(ClassKeyJSON)) {
     rapidjson::Document::Array jsonArray = json[ClassKeyJSON].GetArray();
     processClassKey(jsonArray);
   }
 
-  if (json.HasMember(StringsJSON)) {
-    rapidjson::Document::Array  jsonArray = json[StringsJSON].GetArray();
-    processArray(jsonArray, _stringAttributeMap);
+  if (json.HasMember(AttributesJSON)) {
+    rapidjson::Document::Array  jsonArray = json[AttributesJSON].GetArray();
+    //processArray(jsonArray, _attributeMap);
+    for (auto& element : jsonArray) {
+      rapidjson::Document::Object obj = element.GetObject();
+      std::string schemaName = obj[SchemaNameJSON].GetString();
+      objy::data::Attribute attribute = _classProxy->getAttribute(schemaName);
+      std::string rawName = obj[RawNameJSON].GetString();
+      _attributeMap[rawName] = attribute;
+    }
+
   }
 
-  if (json.HasMember(IntegersJSON)) {
-    rapidjson::Document::Array  jsonArray = json[IntegersJSON].GetArray();
-    processArray(jsonArray, _integerAttributeMap);
-  }
-
-  if (json.HasMember(FloatsJSON)) {
-    rapidjson::Document::Array jsonArray = json[FloatsJSON].GetArray();
-    processArray(jsonArray, _floatAttributeMap);
-  }
-
-  if (json.HasMember(DatesJSON)) {
-    rapidjson::Document::Array  jsonArray = json[DatesJSON].GetArray();
-    processArray(jsonArray, _dateAttributeMap);
-  }
-
+//  if (json.HasMember(IntegersJSON)) {
+//    rapidjson::Document::Array  jsonArray = json[IntegersJSON].GetArray();
+//    processArray(jsonArray, _integerAttributeMap);
+//  }
+//
+//  if (json.HasMember(FloatsJSON)) {
+//    rapidjson::Document::Array jsonArray = json[FloatsJSON].GetArray();
+//    processArray(jsonArray, _floatAttributeMap);
+//  }
+//
+//  if (json.HasMember(DatesJSON)) {
+//    rapidjson::Document::Array  jsonArray = json[DatesJSON].GetArray();
+//    processArray(jsonArray, _dateAttributeMap);
+//  }
+//
   if (json.HasMember(RelationshipsJSON)) {
     rapidjson::Document::Array  jsonArray = json[RelationshipsJSON].GetArray();
     processRelationships(jsonArray);
@@ -62,17 +73,17 @@ bool csv::IngestMapper::initialize(rapidjson::Document::Object json) {
  * @param jsonArray
  * @param stringAttributeMap 
  */
-void csv::IngestMapper::processArray(rapidjson::Document::Array&  jsonArray, 
-        AttributeMapperMap& stringAttributeMap) {
-
-  for (auto& element : jsonArray) {
-    rapidjson::Document::Object obj = element.GetObject();
-    std::string schemaName = obj[SchemaNameJSON].GetString();
-    std::string rawName = obj[RawNameJSON].GetString();
-    stringAttributeMap[schemaName] = rawName;
-  }
-
-}
+//void csv::IngestMapper::processArray(rapidjson::Document::Array&  jsonArray, 
+//        AttributeMapperMap& attributeMap) {
+//
+//  for (auto& element : jsonArray) {
+//    rapidjson::Document::Object obj = element.GetObject();
+//    std::string schemaName = obj[SchemaNameJSON].GetString();
+//    std::string rawName = obj[RawNameJSON].GetString();
+//    attributeMap[schemaName] = rawName;
+//  }
+//
+//}
 
 void csv::IngestMapper::processClassKey(rapidjson::Document::Array& jsonArray) {
 

@@ -18,6 +18,8 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+//#include <locale>
+
 #include <glob.h>  // once we move to c++17 we will use <filesystem> instead
 
 #include <ooObjy.h>
@@ -28,6 +30,7 @@
 #include <objy/db/TransactionScope.h>
 #include "IngestCSV.h"
 #include "src/utils/option.h"
+#include "src/utils/ClassAccessor.h"
 
 namespace objydb = objy::db;
 namespace objydata = objy::data;
@@ -116,8 +119,10 @@ int main(int argc, char** argv) {
   objydb::Transaction* trx;
   config::_Params _params(argc, argv);
 
-  // TBD... boot file is hard coded for now, will be params later
-  //processParams(args);
+  // set local (TBD: we need to make it configurable)
+  // there is an issue with Placement and setting the global local... process will hang
+  //std::locale::global(std::locale("en_US.utf8"));
+  
   fdname =  _params.bootFile;
 	try {
   ooObjy::setLoggingOptions(oocLogAll, true, false, "../logs");
@@ -144,12 +149,12 @@ int main(int argc, char** argv) {
  
 	try {
 	  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
-	  objy::data::Class clazz = objy::data::lookupClass("Person");
-  	cout << "found class: " << clazz.name() << " in the FD" << endl;
+	  objy::data::Class clazz = objy::data::lookupClass("ooObj");
+  	cout << "Connection to the DB checked" << endl;
   	tx->commit();
   	tx->release();
   } catch (ooKernelException& ex) {
-		cerr << "Failed to execute (KernalException): " <<  ex.what() << endl;
+		cerr << "Failed to connect (KernalException): " <<  ex.what() << endl;
 		return -1;
 	}
   
