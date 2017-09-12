@@ -96,17 +96,18 @@ void csv::TargetList::fetchTargets() {
 
   objy::target_finder::ObjectTargetKeyHandle targetKey;
   objy::data::Class objyClass = _targetClass->getObjyClass();
-  objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
+  //cout << "working with objyClass: " << objyClass.name() << endl; 
   
   for (auto pair : _targetInfoMap) {
     auto targetInfo = pair.second;
+  	objy::target_finder::ObjectTargetKeyBuilder targetKeyBuilder(objyClass);
     for (auto keyValuePair : targetInfo->_nameValues) {
     //        cout << "Add to targetKeyBuilder: " << keyValuePair.attrName 
     //             << ", val: " << keyValuePair.attrValue) << endl;
       const objy::data::Attribute& attr = _targetClass->getAttribute(keyValuePair.getName());
       objy::data::Variable var;
       if (_targetClass->getValue(attr, var, keyValuePair.getValue()))
-        targetKeyBuilder.add(const_cast<objy::data::Attribute&>(attr), var); 
+        targetKeyBuilder.add(keyValuePair.getName().c_str(), var); 
     }
     targetKey = targetKeyBuilder.build();
     targetInfo->_targetObject = targetFinder.getObjectTarget(targetKey);

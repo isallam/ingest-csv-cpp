@@ -257,12 +257,12 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
   bool retValue = true;
 
   objy::data::LogicalType::type logicalType = attr.attributeValueSpecification()->logicalType();
-  cout << "logicalType: " << objy::data::LogicalType::toString(logicalType) << endl;
+//	cout << "logicalType: " << objy::data::LogicalType::toString(logicalType) << endl;
   
   switch (logicalType) {
     case objy::data::LogicalType::Integer:
     {
-      cout << "integer tyoe for value: " << value << endl;
+//      cout << "integer tyoe for value: " << value << endl;
       objy::uint_16 encoding = attr.specification()->encoding();
       objy::uint_16 storage = attr.specification()->storage();
       try {

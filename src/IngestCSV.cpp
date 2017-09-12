@@ -46,6 +46,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
     fclose(fp);
   } else {
     std::cerr << "Error opening file: " << mapperFile << std::endl;
+		return;
   }
 
   try {

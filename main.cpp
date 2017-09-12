@@ -67,14 +67,14 @@ public:
         .action("store")
         .type("string")
         .dest(BootFilePath)
-        .set_default("/home/projects/ingest-csv-cpp/data/testfd.boot")
+        .set_default("../data/testfd.boot")
         .help("bootfile file path (default ./data/fdtest.boot)");
     optionParser
         .add_option("-f", "--csvFile")
         .action("store")
         .type("string")
         .dest(CSVFilePath)
-        .set_default("/home/projects/ingest-csv-cpp/source-data/addresses.csv")
+        .set_default("../source-data/addresses.csv")
         .help("full path to the csv file to ingest.");
     optionParser
         .add_option("-p", "--csvPathPattern")
@@ -87,7 +87,7 @@ public:
         .action("store")
         .type("string")
         .dest(MapperFilePath)
-        .set_default("/home/projects/ingest-csv-cpp/config/addressMapper.json")
+        .set_default("../config/addressMapper.json")
         .help("full path to the JSON mapper file to aid the ingest process.");
     
     optparse::Values &values = optionParser.parse_args(argc, argv);
@@ -120,20 +120,39 @@ int main(int argc, char** argv) {
   // TBD... boot file is hard coded for now, will be params later
   //processParams(args);
   fdname =  _params.bootFile;
-  ooObjy::setLoggingOptions(oocLogAll, true, false, "/home/projects/ingest-csv-cpp/logs");
+	try {
+  ooObjy::setLoggingOptions(oocLogAll, true, false, "../logs");
+  }
+	catch (ooLogOpenFailed& ex) {
+		cerr << "error setting up logging... " << ex.what() << endl;
+    return -1;
+	} 
   ooObjy::startup(24);
 
   objyconfig::ConfigurationManager* cfgMgr = objyconfig::ConfigurationManager::getInstance();
   cfgMgr->enableConfiguration(true, 0, 0, 0, 0);
 
   //connection = ooObjy::getConnection(bootfile);
-  connection = objydb::Connection::connect(fdname.c_str());
-  
-  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
-  objy::data::Class clazz = objy::data::lookupClass("Person");
-  cout << "found class: " << clazz.name() << " in the FD" << endl;
-  tx->commit();
-  tx->release();
+  try { 
+	  connection = objydb::Connection::connect(fdname.c_str());
+  } catch (ooKernelException& ex) {
+		cerr << "Failed to connect to FD (KernalException): " <<  ex.what() << endl;
+		return -1;
+  } catch (std::runtime_error& ex) {
+		cerr << "Failed to connect to FD (RuntimeError): " <<  ex.what() << endl;
+		return -1;
+	}
+ 
+	try {
+	  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
+	  objy::data::Class clazz = objy::data::lookupClass("Person");
+  	cout << "found class: " << clazz.name() << " in the FD" << endl;
+  	tx->commit();
+  	tx->release();
+  } catch (ooKernelException& ex) {
+		cerr << "Failed to execute (KernalException): " <<  ex.what() << endl;
+		return -1;
+	}
   
   try {
     csv::IngestCSV ingester;
