@@ -56,7 +56,7 @@ void csv::IngestCSV::ingest(std::string csvFile, std::string mapperFile, int com
   }
 
   try {
-    objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
+    objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "write");
     //      long timeStart = System.currentTimeMillis();
     // schemaManager need to be initialized within a transaction to cahce 
     // meta data information.
@@ -126,6 +126,7 @@ int csv::IngestCSV::processRawData(std::string fileName, IngestMapper& mapper) {
     bool doProcessForRelationships = mapper.hasRelationships();
     bool doProcessClassKeys = mapper.hasClassKey();
     if (doProcessClassKeys || doProcessForRelationships) {
+      std::cout << "Phase 1: process records and collect information for existing objects and relationships." << std::endl;
       for (CSVRecord& record : records) {
         if (doProcessForRelationships) {
           for (Relationship* rel : mapper.getRelationshipList()) {
@@ -138,6 +139,7 @@ int csv::IngestCSV::processRawData(std::string fileName, IngestMapper& mapper) {
       }
       // fetch the ids that exist in the FD.
       if (doProcessForRelationships) {
+        std::cout << "\t fetch and/or create related objects..." << std::endl;
         for (Relationship* rel : mapper.getRelationshipList()) {
           rel->getTargetList()->fetchTargets();
           int count = rel->getTargetList()->createMissingTargets();
@@ -147,17 +149,18 @@ int csv::IngestCSV::processRawData(std::string fileName, IngestMapper& mapper) {
       }
       // fetch existing objects if available.
       if (doProcessClassKeys) {
+        std::cout << "\t fetch and/or create objects..." << std::endl;
         mapper.getClassTargetList()->fetchTargets();
         int count = mapper.getClassTargetList()->createMissingTargets();
         std::cout << "created " << count << " of "
                 << mapper.getClassName() << " objects" << std::endl;
       }
     }
-    csvParser.rewind();
+    //csvParser.rewind();
 
     // pass 2:
     std::cout << "Phase 2: update newly created objects and connect related objects." << std::endl;
-    records = csvParser.getRecords();
+    //records = csvParser.getRecords();
     for (csv::CSVRecord record : records) {
       mapper.getClassProxy()->createObject(record);
       objCount++;

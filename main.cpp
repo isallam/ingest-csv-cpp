@@ -39,11 +39,12 @@ namespace objyconfig = objy::configuration;
 using namespace std;
 
 namespace config {
-  static const char* CommitEvery    = "CommitEvery";
-  static const char* BootFilePath   = "BootFilePath";
-  static const char* CSVFilePath    = "CSVFilePath";
-  static const char* CSVPathPattern = "CSVPathPattern";
-  static const char* MapperFilePath = "MapperFilePath";
+  static const char* CommitEvery       = "CommitEvery";
+  static const char* BootFilePath      = "BootFilePath";
+  static const char* CSVFilePath       = "CSVFilePath";
+  static const char* CSVPathPattern    = "CSVPathPattern";
+  static const char* MapperFilePath    = "MapperFilePath";
+  static const char* AppConfigFilePath = "AppConfigFilePath";
 
 
 class _Params {
@@ -91,20 +92,30 @@ public:
         .dest(MapperFilePath)
         .set_default("../config/addressMapper.json")
         .help("full path to the JSON mapper file to aid the ingest process.");
+    optionParser
+        .add_option("-g", "--appConfigFilePath")
+        .action("store")
+        .type("string")
+        .dest(AppConfigFilePath)
+        .set_default("../config/app.config")
+        .help("path to application specific config file ");
     
     optparse::Values &values = optionParser.parse_args(argc, argv);
     
-    bootFile = (const char*) values.get(BootFilePath);
-    mapperFile = (const char*) values.get(MapperFilePath);
-    commitEvery = values.get(CommitEvery).asInt32();
+    bootFile          = (const char*) values.get(BootFilePath);
+    mapperFile        = (const char*) values.get(MapperFilePath);
+    commitEvery       = values.get(CommitEvery).asInt32();
     
-    csvFile = (const char*)values.get(CSVFilePath);
-    csvPathPattern = (const char*) values.get(CSVPathPattern);
+    csvFile           = (const char*)values.get(CSVFilePath);
+    csvPathPattern    = (const char*) values.get(CSVPathPattern);
+    appConfigFilePath = (const char*) values.get(AppConfigFilePath);
   }
+  
   string bootFile;
   string csvFile;
   string csvPathPattern;
   string mapperFile;
+  string appConfigFilePath;
   int commitEvery = 20000;
 };
 }
@@ -134,7 +145,7 @@ int main(int argc, char** argv) {
   ooObjy::startup(24);
 
   objyconfig::ConfigurationManager* cfgMgr = objyconfig::ConfigurationManager::getInstance();
-  cfgMgr->enableConfiguration(true, 0, 0, 0, 0);
+  cfgMgr->enableConfiguration(true, _params.appConfigFilePath.c_str(), 0, 0, 0);
 
   //connection = ooObjy::getConnection(bootfile);
   try { 
@@ -148,7 +159,7 @@ int main(int argc, char** argv) {
 	}
  
 	try {
-	  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "spark_write");
+	  objy::db::Transaction* tx = new objy::db::Transaction(objy::db::OpenMode::Update, "write");
 	  objy::data::Class clazz = objy::data::lookupClass("ooObj");
   	cout << "Connection to the DB checked" << endl;
   	tx->commit();
@@ -163,6 +174,7 @@ int main(int argc, char** argv) {
 
     if (_params.csvPathPattern.empty()) {
       cout << "Processing file: " << _params.csvFile << endl;
+      cout << "... with Mapper file: " << _params.mapperFile << endl;
       ingester.ingest(_params.csvFile, _params.mapperFile, _params.commitEvery);
     } else {
       cout << "Processing file pattern: " << _params.csvPathPattern << endl;
@@ -187,6 +199,7 @@ int main(int argc, char** argv) {
       for(string csvFile : fileList)
       {
         cout << "Processing File: " << csvFile << endl;
+        cout << "... with Mapper file: " << _params.mapperFile << endl;
         ingester.ingest(csvFile, _params.mapperFile, _params.commitEvery);
         cout << "Processed " << count << " of " << totalCount << endl;
         count++;

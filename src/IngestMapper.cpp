@@ -154,17 +154,17 @@ void csv::IngestMapper::processRelationships(rapidjson::Document::Array& jsonArr
                 attr.attributeValueSpecification()->logicalType());
         singleKeys.push_back(key);
       }
-      std::unique_ptr<csv::TargetKey> key(new csv::CompositeKey(singleKeys));
-      rel->add(std::move(key), relationshipName, toClassRelationshipName, _className);
+      csv::TargetKey* key = new csv::CompositeKey(singleKeys);
+      rel->add(key, relationshipName, toClassRelationshipName, toClass);
     } else {
       rapidjson::Document::Object& keyObj = keys.at(0);
       std::string  keySchemaName = keyObj[SchemaNameJSON].GetString();
       std::string  keyRawName = keyObj[RawNameJSON].GetString();
       // get the type of the keySchemaName 
       objy::data::Attribute attr = toClassAccessor->getAttribute(keySchemaName);
-      std::unique_ptr<csv::TargetKey> key(new csv::SingleKey(keySchemaName, keyRawName,
-              attr.attributeValueSpecification()->logicalType()));
-      rel->add(std::move(key), relationshipName, toClassRelationshipName, _className);
+      csv::TargetKey* key = new csv::SingleKey(keySchemaName, keyRawName,
+              attr.attributeValueSpecification()->logicalType());
+      rel->add(key, relationshipName, toClassRelationshipName, toClass);
     }
     _relationshipList.push_back(rel);
   }

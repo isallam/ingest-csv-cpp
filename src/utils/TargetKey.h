@@ -24,6 +24,8 @@ using namespace std;
 
 namespace csv {
 
+  class SingleKey;
+    
   class TargetKey {
   public:
     TargetKey() = default;
@@ -33,6 +35,8 @@ namespace csv {
     virtual vector<Property> getProperties(CSVRecord& record) = 0;
     virtual string getAttrName() = 0;
     virtual string getRawFileAttrName() = 0;
+    virtual std::vector<SingleKey*> keys() const = 0;
+
   };
 
   /***********************************/
@@ -60,17 +64,17 @@ namespace csv {
     _rawFileAttrName(std::move(orig._rawFileAttrName)), _logicalType(std::move(orig._logicalType)) {
     }
 
-    string toString() {
+    virtual string toString() {
       string retString;
 
-      retString = "attrName: " + _attrName +
+      retString = "SingleKey>> attrName: " + _attrName +
               ", rawFileName: " + _rawFileAttrName +
               ", logicalType: " + objy::data::LogicalType::toString(_logicalType);
 
       return retString;
     }
 
-    string getCorrectValue(CSVRecord& record) {
+    virtual string getCorrectValue(CSVRecord& record) {
       //    if (logicalType == LogicalType.INTEGER) {
       //      long attrValue = 0;
       //      string attrValueStr = record.get(rawFileAttrName);
@@ -89,7 +93,7 @@ namespace csv {
       return record.get(_rawFileAttrName);
     }
     
-    vector<Property> getProperties(CSVRecord& record) {
+    virtual vector<Property> getProperties(CSVRecord& record) {
         vector<Property> nameValues;
           nameValues.push_back(Property(
                   getAttrName(),
@@ -97,15 +101,15 @@ namespace csv {
           return nameValues;
     }
 
-    string getAttrName() {
+    virtual string getAttrName() {
       return _attrName;
     }
 
-    string getRawFileAttrName() {
+    virtual string getRawFileAttrName() {
       return _rawFileAttrName;
     }
 
-    std::vector<SingleKey> keys() const {
+    virtual std::vector<SingleKey*> keys() const {
       throw std::invalid_argument("SingleKey does implement keys()");
     }
 
@@ -135,8 +139,8 @@ namespace csv {
     CompositeKey(CompositeKey&& other) : _keys(std::move(other._keys)) {
     }
 
-    std::string toString() {
-      std::string strBuffer;
+    virtual string toString() {
+      string strBuffer = "CompositeKey>> ";
       for (SingleKey* key : _keys) {
         strBuffer += key->toString() + " \n ";
       }
@@ -151,7 +155,7 @@ namespace csv {
       return value;
     }
     
-    vector<Property> getProperties(CSVRecord& record) {
+    virtual vector<Property> getProperties(CSVRecord& record) {
         vector<Property> nameValues;
         for (unsigned int i = 0; i < _keys.size(); i++) {
           nameValues.push_back(Property(
@@ -161,15 +165,15 @@ namespace csv {
         return nameValues;
     }
 
-    string getAttrName() {
+    virtual string getAttrName() {
       throw std::invalid_argument("CompositeKey does implement getAttrName()");
     }
 
-    string getRawFileAttrName() {
+    virtual string getRawFileAttrName() {
       throw std::invalid_argument("CompositeKey does implement getRarFileAttrName()");
     }
 
-    std::vector<SingleKey*> keys() const {
+    virtual std::vector<SingleKey*> keys() const {
       return _keys;
     }
 

@@ -43,22 +43,22 @@ void csv::TargetList::addToTargetInfoMap(const vector<Property>& nameValues) {
 }
 
 
-objy::data::Object  csv::TargetList::getTargetObject(
+objy::data::Reference  csv::TargetList::getTargetObject(
     const csv::CSVRecord& record, csv::TargetKey* key) {
-  objy::data::Object  instance;
+  objy::data::Reference  reference;
   // TBD... handle error 
  // try {
-      instance = getTargetObjectForKey(record, key);
-//  } catch (Exception ex) {
+      reference = getTargetObjectForKey(record, key);
+//  } catch (std::exception ex) {
 //    LOG.error("Error for key(s): {}", key.toString());
 //    //ex.printStackTrace();
 //    throw ex;
 //  }
 
-  return instance;
+  return reference;
 }
 
-objy::data::Object csv::TargetList::getTargetObjectForKey(csv::CSVRecord record,
+objy::data::Reference csv::TargetList::getTargetObjectForKey(csv::CSVRecord record,
         TargetKey* key) {
   return getTargetObject(hash(key->getCorrectValue(record)));
 }
@@ -75,20 +75,20 @@ long csv::TargetList::hash(string value) {
   return std::hash<std::string>()(value);
 }
 
-objy::data::Object csv::TargetList::getTargetObject(long hashValue) {
-  objy::data::Object instance;
+objy::data::Reference csv::TargetList::getTargetObject(long hashValue) {
+  objy::data::Reference reference;
 
   auto itr = _targetInfoMap.find(hashValue);
   if (itr == _targetInfoMap.end())
     throw std::invalid_argument("can't find entry in targetInfoMap");
   
   TargetInfo* targetInfo = itr->second;
-  throw std::logic_error("finish getTargetObject() impl");
-  //instance = targetInfo->_targetObject.getInstance();
-  if (instance.isNull())
+  //throw std::logic_error("finish getTargetObject() impl");
+  reference = targetInfo->_targetObject->reference();
+  if (reference.isNull())
     throw std::invalid_argument("invalid instance for target.");
-
-  return instance;
+  
+  return reference;
 }
 
 void csv::TargetList::fetchTargets() {

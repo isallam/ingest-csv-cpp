@@ -24,6 +24,8 @@ using namespace std;
 #include <objy/data/Data.h>
 #include <objy/data/List.h>
 #include <objy/data/Class.h>
+#include <objy/data/Object.h>
+#include <objy/data/Attribute.h>
 
 #include "Property.h"
 #include "Relationship.h"
@@ -86,9 +88,9 @@ namespace csv {
     void setAttributeValue(objy::data::Object& instance,
             const string& attributeName, const objy::data::Variable& value) const;
     void setReference(objy::data::Object& instance,
-            const string& attributeName, const objy::data::Object& value) const;
+            const string& attributeName, const objy::data::Reference& value) const;
     void addReference(objy::data::Object& instance,
-            const string& attributeName, const objy::data::Object& value) const;
+            const string& attributeName, const objy::data::Reference& value) const;
 
     bool getValue(const objy::data::Attribute& attr, objy::data::Variable& var, 
             std::string value) const;
@@ -97,8 +99,8 @@ namespace csv {
     void setAttributeValue(objy::data::Object& instance,
             const objy::data::Attribute& attribute, const objy::data::Variable& value) const;
     void setReference(objy::data::Object& instance,
-            const objy::data::Attribute& attribute, const objy::data::Object& value) const;
-    bool doesListContainReference(const objy::data::List& list, const objy::data::Object& value) const;
+            const objy::data::Attribute& attribute, const objy::data::Reference& value) const;
+    bool doesListContainReference(const objy::data::List& list, const objy::data::Reference& value) const;
     void addReferenceIfDoesnotExist(objy::data::Map& map, const objy::data::Reference& objRef) const;
 
 

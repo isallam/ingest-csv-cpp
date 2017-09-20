@@ -57,7 +57,7 @@ namespace csv {
     }
 
     void collectTargetInfo(CSVRecord& record);
-    objy::data::Object getTargetObject(const csv::CSVRecord& record, TargetKey* key);
+    objy::data::Reference getTargetObject(const csv::CSVRecord& record, TargetKey* key);
     void fetchTargets();
     int createMissingTargets();
 
@@ -74,10 +74,10 @@ namespace csv {
     
     void addToTargetInfoMap(const vector<Property>& nameValues);
 
-    objy::data::Object getTargetObjectForKey(csv::CSVRecord record,
+    objy::data::Reference getTargetObjectForKey(csv::CSVRecord record,
             csv::TargetKey* key);
   
-    objy::data::Object getTargetObject(long hashValue);
+    objy::data::Reference getTargetObject(long hashValue);
 
     static long hashOfValues(Property nameValue);
     static long hashOfValues(vector<Property> nameValues);

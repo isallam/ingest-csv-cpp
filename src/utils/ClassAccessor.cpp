@@ -101,8 +101,8 @@ void csv::ClassAccessor::init() {
 const objy::data::Attribute& csv::ClassAccessor::getAttribute(const string& attrName) const {
   AttributeMap::const_iterator itr = _attributeMap.find(attrName);
   if (itr == _attributeMap.end()) {
-    cerr << "Failed to get attribute: " << attrName
-            << " from ClassAccessor for class: " << _className << endl;
+    cerr << "Failed to get attribute: '" << attrName
+            << "' for class: '" << _className << "'" << endl;
     throw std::invalid_argument("Failed to get attribute: " + attrName);
   }
 
@@ -120,7 +120,9 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
 
   // check if we already have the instance
   if (_mapper->hasClassKey()) {
-    instance = _mapper->getClassTargetList()->getTargetObject(record, _mapper->getClassKey());
+    objy::data::Reference ref = _mapper->getClassTargetList()->
+            getTargetObject(record, _mapper->getClassKey());
+    instance = ref.referencedObject();
   }
 
   if (instance.isNull()) {
@@ -131,15 +133,22 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
   for (auto& rel : _mapper->getRelationshipList()) {
     TargetList* relTarget = rel->getTargetList();
     auto refList = rel->getRelationshipRefList();
-    for (auto itr = refList.begin(); itr != refList.end(); itr++) {
-      objy::data::Object refInstance = relTarget->getTargetObject(record, itr->getKey());
-      if (!refInstance.isNull()) {
-        setReference(instance, itr->getRefAttrName(), refInstance);
+    for (csv::RelationshipRef* relRef : refList) {
+      string revRefAttrName = relRef->getRevRefAttrName();
+      //cout << "revRefAttrName: " << revRefAttrName << endl;
+      //cout << "revRefClassName: " << relRef->getRevRefClassProxy()->_className << endl;
+      TargetKey* key = relRef->getKey();
+      //cout << "key: " << key->toString() << endl;
+      objy::data::Reference ref = relTarget->getTargetObject(record, key);
+      if (!ref.isNull()) {
+        setReference(instance, relRef->getRefAttrName(), ref);
       }
-      if (!itr->getRevRefAttrName().empty()) // we have a reverse attribute to set
+      if (!revRefAttrName.empty()) // we have a reverse attribute to set
       {
-        itr->getRevRefClassProxy()->addReference(refInstance,
-                itr->getRevRefAttrName(), instance);
+        objy::data::Reference objRef = objy::data::createReference(instance);
+        objy::data::Object objInst = ref.referencedObject();
+        relRef->getRevRefClassProxy()->addReference(objInst,
+                revRefAttrName, objRef);
       }
     }
   }
@@ -265,18 +274,13 @@ void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance,
 
 void csv::ClassAccessor::setAttributeValue(objy::data::Object& instance,
         const std::string& attributeName, const objy::data::Variable& value) const {
-  AttributeMap::const_iterator itr = _attributeMap.find(attributeName);
-  if (itr != _attributeMap.end()) {
-    setAttributeValue(instance, itr->second, value);
-  } else {
-    std::cerr << "Error for : " << instance.getClass(true).name()
-            << " -attr: " << attributeName << " is not in the attribute map"
-            << std::endl;
-  }
+  const objy::data::Attribute& attribute = this->getAttribute(attributeName);
+  if (!attribute.isNull())
+    setAttributeValue(instance, attribute, value);
 }
 
 void csv::ClassAccessor::setReference(objy::data::Object& instance,
-        const objy::data::Attribute& attribute, const objy::data::Object& value) const {
+        const objy::data::Attribute& attribute, const objy::data::Reference& value) const {
   objy::data::Variable varValue;
   instance.attributeValue(attribute, varValue);
 
@@ -286,12 +290,12 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
   if (attrLogicalType == objy::data::LogicalType::List) {
     objy::data::List list = varValue.get<objy::data::List>();
     if (!doesListContainReference(list, value))
-      list.append(objy::data::createReference(value));
+      list.append(value);
   } else if (attrLogicalType == objy::data::LogicalType::Map) {
     objy::data::Map map = varValue.get<objy::data::Map>();
-    addReferenceIfDoesnotExist(map, objy::data::createReference(value));
+    addReferenceIfDoesnotExist(map, value);
   } else if (attrLogicalType == objy::data::LogicalType::Reference) {
-    varValue.set(objy::data::createReference(value));
+    varValue.set(value);
   } else {
     std::cerr << "Illegal attribute type " << objy::data::LogicalType::toString(attrLogicalType)
             << " for Instance value." << std::endl;
@@ -299,8 +303,8 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
 }
 
 void csv::ClassAccessor::setReference(objy::data::Object& instance,
-        const string& attributeName, const objy::data::Object& value) const {
-  const objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
+        const string& attributeName, const objy::data::Reference& value) const {
+  const objy::data::Attribute& attribute = this->getAttribute(attributeName);
   if (instance.isNull() || value.isNull() || attribute.isNull()) {
     std::cerr << "For attr: " << attributeName
             << " - instance/attribute/value: " << objy::data::oidFor(instance).sprint()
@@ -311,13 +315,13 @@ void csv::ClassAccessor::setReference(objy::data::Object& instance,
 }
 
 void csv::ClassAccessor::addReference(objy::data::Object& instance,
-        const string& attributeName, const objy::data::Object& value) const {
-  const objy::data::Attribute& attribute = _attributeMap.find(attributeName)->second;
+        const string& attributeName, const objy::data::Reference& value) const {
+  const objy::data::Attribute& attribute = this->getAttribute(attributeName);
   setReference(instance, attribute, value);
 }
 
 bool csv::ClassAccessor::doesListContainReference(const objy::data::List& list,
-        const objy::data::Object& value) const {
+        const objy::data::Reference& value) const {
   objy::data::Variable var;
   objy::uint_64 valueOid = value.identifier().get<objy::uint_64>();
   for (unsigned i = 0; i < list.size(); i++) {
