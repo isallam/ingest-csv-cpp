@@ -16,6 +16,8 @@
 #include <sstream>
 #include <iterator>
 
+#include <objy/Exception.h>
+
 #include "ClassAccessor.h"
 #include "IngestMapper.h"
 
@@ -118,6 +120,7 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
 
   objy::data::Object instance;
 
+  try {
   // check if we already have the instance
   if (_mapper->hasClassKey()) {
     objy::data::Reference ref = _mapper->getClassTargetList()->
@@ -129,31 +132,37 @@ objy::data::Object csv::ClassAccessor::createObject(const CSVRecord& record) con
     instance = createInstance();
   }
 
-  // iterate all relationships and resolve references
-  for (auto& rel : _mapper->getRelationshipList()) {
-    TargetList* relTarget = rel->getTargetList();
-    auto refList = rel->getRelationshipRefList();
-    for (csv::RelationshipRef* relRef : refList) {
-      string revRefAttrName = relRef->getRevRefAttrName();
-      //cout << "revRefAttrName: " << revRefAttrName << endl;
-      //cout << "revRefClassName: " << relRef->getRevRefClassProxy()->_className << endl;
-      TargetKey* key = relRef->getKey();
-      //cout << "key: " << key->toString() << endl;
-      objy::data::Reference ref = relTarget->getTargetObject(record, key);
-      if (!ref.isNull()) {
-        setReference(instance, relRef->getRefAttrName(), ref);
-      }
-      if (!revRefAttrName.empty()) // we have a reverse attribute to set
-      {
-        objy::data::Reference objRef = objy::data::createReference(instance);
-        objy::data::Object objInst = ref.referencedObject();
-        relRef->getRevRefClassProxy()->addReference(objInst,
-                revRefAttrName, objRef);
+    // iterate all relationships and resolve references
+    for (auto& rel : _mapper->getRelationshipList()) {
+      TargetList* relTarget = rel->getTargetList();
+      auto refList = rel->getRelationshipRefList();
+      for (csv::RelationshipRef* relRef : refList) {
+        string revRefAttrName = relRef->getRevRefAttrName();
+        //cout << "revRefAttrName: " << revRefAttrName << endl;
+        //cout << "revRefClassName: " << relRef->getRevRefClassProxy()->_className << endl;
+        TargetKey* key = relRef->getKey();
+        //cout << "key: " << key->toString() << endl;
+        objy::data::Reference ref = relTarget->getTargetObject(record, key);
+        if (!ref.isNull()) {
+          setReference(instance, relRef->getRefAttrName(), ref);
+        }
+        if (!revRefAttrName.empty()) // we have a reverse attribute to set
+        {
+          objy::data::Reference objRef = objy::data::createReference(instance);
+          objy::data::Object objInst = ref.referencedObject();
+          relRef->getRevRefClassProxy()->addReference(objInst,
+                  revRefAttrName, objRef);
+        }
       }
     }
-  }
 
   setAttributes(instance, record);
+
+  } catch (objy::Exception& ex) {
+    cerr << "objy::Exception while creating object" << endl;
+    cerr << "\t " << ex.what() << "\n" << ex.error()->stackTrace() << endl;
+    throw ex;
+  }
 
   return instance;
 }
@@ -339,8 +348,7 @@ void csv::ClassAccessor::addReferenceIfDoesnotExist(objy::data::Map& map,
         const objy::data::Reference& objRef) const {
   // set the key and value in the map from the call object.... 
   ooId oid = objy::data::oidFor(objRef);
-  char* key = oid.sprint();
-  //System.out.println("call.getObjectId(): " + call.getObjectId().toString());
+  const char* key = oid.sprint();
   if (!map.containsKey(key)) {
     //objy::data::Variable value(objRef);
     map[key] = objRef;
@@ -476,8 +484,31 @@ bool csv::ClassAccessor::getValue(const objy::data::Attribute& attr,
     }
   case objy::data::LogicalType::DateTime:
     {
-      string errString("LogicalType::DateTime is not supported...");
-      throw std::invalid_argument(errString);
+      // only support long (epoch) value for DateTime.
+      string errString("LogicalType::DateTime is only supported for epoch values...");
+      try {
+          objy::uint_64 timeValue = std::stoul(value);
+          objy::int_64 offsetTicks = 0;
+          // start - testing
+//          time_t tValue = std::stoul(value);
+//          cout << "The date/time is: " <<  ctime (&tValue) << endl;;          
+          // end - testing
+          objy::data::DateTime datetime(timeValue, offsetTicks);
+          var.set<objy::data::DateTime>(datetime);
+          
+      } catch (std::invalid_argument& ex) {
+        cerr << "invalid conversion to time_t: " << ex.what() << endl;
+        throw std::invalid_argument(errString);
+      } catch (std::out_of_range& oorEx) {
+        cerr << "Invalid value for time_t conversion: " << value << endl;
+        cerr << oorEx.what() << endl;
+        throw std::invalid_argument(errString);
+      } catch (ooException& ex) {
+        cerr << "error when constructing DateTime: " << ex.what() << endl;
+        cerr << ex.getStackTrace() << endl;
+        throw std::invalid_argument(errString);
+      }
+      
 //      DateTime datetime;
 //      if (kind == objy::data::DateTimeKind::Offset)
 //      {

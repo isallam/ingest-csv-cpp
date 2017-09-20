@@ -13,6 +13,10 @@
 
 #include <iostream>
 #include <cassert>
+
+#include <ooObjy.h>
+#include <objy/Exception.h>
+
 #include "IngestCSV.h"
 
 #include "utils/rapidjson/document.h"
@@ -167,6 +171,10 @@ int csv::IngestCSV::processRawData(std::string fileName, IngestMapper& mapper) {
     }
   } catch (csv::error::base& error) {
     cerr << "CSV::Error: " << error.what() << endl;	
+  } catch (ooException& ex) {
+    cerr << "ooException: " << ex.getStackTrace() << endl;
+  } catch (objy::UserException& ex) {
+    cerr << "objy::UserEception: " << ex.what() << endl;
   } catch (std::exception& stdex) {
     cerr << "csv::IngestCSV::processFile() - Exception: " << stdex.what() << endl;
   } catch (...) {
